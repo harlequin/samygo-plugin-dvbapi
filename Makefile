@@ -1,7 +1,8 @@
 TARGETS=libdvbapi.so
  
 CFLAGS += -fPIC -O2 -std=gnu99 -I../include -mglibc -march=34kc
-CFLAGS += -ldl
+CFLAGS += -ldl -DBUILD_GIT_SHA=\"$(GIT_VERSION)\"
+GIT_VERSION := $(shell git describe --dirty --always --abbrev=4)
 
 all: ${TARGETS} 
     	

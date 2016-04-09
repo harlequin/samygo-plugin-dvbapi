@@ -42,6 +42,9 @@
 #include <pthread.h> /* socket handler */
 #include <arpa/inet.h> /* inet_pton */
 
+#include "version.h"
+
+
 #include "hook.h"
 #include "common.h"
 #include "C_support.h"
@@ -681,7 +684,7 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
     }
 
     unlink(LOG_FILE);
-	log("SamyGO "LIB_TV_MODELS" lib"LIB_NAME" "LIB_VERSION" - (c) element 2016\n");
+	log("SamyGO "LIB_TV_MODELS" lib"LIB_NAME" "LIB_VERSION" - "BUILD_GIT_TIME" (c) element 2016\n");
 
 	void *h = dlopen(0, RTLD_LAZY);
 
