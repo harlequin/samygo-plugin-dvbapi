@@ -2,9 +2,9 @@
  * Copyright (c) 2016 harlequin
  * https://github.com/harlequin/samygo-plugin-dvbapi
  *
- * This file is part of viral.
+ * This file is part of samygo-plugin-dvbapi.
  *
- * viral is free software: you can redistribute it and/or modify
+ * samygo-plugin-dvbapi is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -55,7 +55,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //#define OSCAM_SERVER_IP xxx.xxx.xxx.xxx
-//#define OSCMA_SERVER_PORT xxxx
+//#define OSCAM_SERVER_PORT xxxx
 //////////////////////////////////////////////////////////////////////////////
 #ifndef OSCAM_SERVER_IP
 #error "Can't compile without server ip information"
@@ -83,17 +83,25 @@ static unsigned int g_dmxHandle = DMX_HANDLE_LIVE;
 static int g_pidVideo = 0x0;
 static int g_pidAudio = 0x0;
 
+typedef struct  {
+  	/* 0 */ u32 pid;
+  	/* 1 */ u32 res;
+  	/* 2 */ u32 res2;
+  	/* 3 */ u32 filter;
+  	/* 4 */ u32 res3;
+  	/* 5 */ u32 res4;
+  	/* 6 */ u32 res5;
+  	/* 7 */ u8 mask[0x10];
+} SdTSData_Settings_t;
 
-static u32 g_dmxParams80[5];
-static u32 g_dmxParams81[5];
+static SdTSData_Settings_t g_dmxParams80;
+static SdTSData_Settings_t g_dmxParams81;
 static s32 g_monHandle81 = -1;
 static s32 g_monHandle80 = -1;
 static u8 g_80_demux_id;
 static u8 g_80_filter_id;
 static u8 g_81_demux_id;
 static u8 g_81_filter_id;
-static u32 g_80_mask = 0xFF;
-static u32 g_81_mask = 0xFF;
 
 static u8 socket_connected = 0x00; /* will be set to 1 if handshake was done */
 static struct PMT *_pmt = NULL;
@@ -101,18 +109,12 @@ static int protocol_version = 0;
 static u8 adapter_index;
 static int sockfd;
 
-typedef struct  {
-  	u32 pid;
-    u32 res;
-    u32 res2;
-    u32 filter;
-    u32 res3;
-} SdTSData_Settings_t;
+
 
 typedef union {
 	const void *procs[19];
 	struct	{
-		const int (*SdTSData_StartMonitor)(u32 dmx_handle, u32 *a1);
+		const int (*SdTSData_StartMonitor)(u32 dmx_handle, SdTSData_Settings_t *a1);
 		const int (*SdTSData_StopMonitor)(u32 dmx_handle, u32 mon_handle);
 		const int (*MDrv_DSCMB_Init)(void);
 		void **g_pAppWindow;
@@ -179,15 +181,11 @@ static void print_hash(u8 *ptr, u32 len){
 static void socket_send_filter_data(u8 demux_id, u8 filter_num, u8 *data, u32 len) {
 	if(!socket_connected) {return;}
 	log("send filter data demux_id: 0x%02x filter_num: 0x%02x\n", demux_id, filter_num);
-
-	log(">>>\n");
-	print_hash(data, len);
-	log("<<<\n");
-
+	//log(">>>\n"); print_hash(data, len); log("<<<\n");
 	unsigned char buff[6 + len];
 	u32 req = htonl(DVBAPI_FILTER_DATA);
 	memcpy(&buff[0], &req, 4);
-	buff[4] = 0;//demux_id;
+	buff[4] = demux_id;
 	buff[5] = filter_num;
 	memcpy(buff + 6, data, len);
 	write(sockfd, buff, sizeof(buff));
@@ -199,7 +197,7 @@ static void socket_send_client_info() {
 	unsigned char buff[7 + len];
 	u32 req = htonl(DVBAPI_CLIENT_INFO);               //type of request
 	memcpy(&buff[0], &req, 4);
-	int16_t proto_version = htons(DVBAPI_PROTOCOL_VERSION); //supported protocol version
+	u16 proto_version = htons(DVBAPI_PROTOCOL_VERSION); //supported protocol version
 	memcpy(&buff[4], &proto_version, 2);
 	buff[6] = len;
 	memcpy(&buff[7], &INFO_VERSION, len);                   //copy info string
@@ -253,13 +251,13 @@ static void changeMonitor(unsigned int dmxHandle) {
 	g_dmxHandle = dmxHandle;
 	log("using dmxHandle=0x%08X\n", dmxHandle);
 
-	if ( g_dmxParams80[0] != 0x00) {
-		g_monHandle80 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, g_dmxParams80);/*maybe add 0x00 as parameter*/
+	if ( g_dmxParams80.pid != 0x00) {
+		g_monHandle80 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_dmxParams80);/*maybe add 0x00 as parameter*/
 		log("ECM80 monitor restarted, dmxHandle=0x%08x, monHandle=0x%08x\n", g_dmxHandle, g_monHandle80);
 	}
 
-	if ( g_dmxParams81[0] != 0x00 ) {
-		g_monHandle81 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, g_dmxParams81);/*maybe add 0x00 as parameter*/
+	if ( g_dmxParams81.pid != 0x00 ) {
+		g_monHandle81 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_dmxParams81);/*maybe add 0x00 as parameter*/
 		log("ECM81 monitor restarted, dmxHandle=0x%08x, monHandle=0x%08x\n", g_dmxHandle, g_monHandle81);
 	}
 }
@@ -387,23 +385,23 @@ _HOOK_IMPL(int, TCCIMManagerBase_HostChannelChangeCompleted, u32 this, u32 TCCha
 	return (int)h_ret;
 }
 
-_HOOK_IMPL(int,TCCIMManagerBase_SetAVPID, u32 a1, u32 a2, u32 a3, u32 a4, u32 a5 /*u32 pidVideo, u32 pidAudio, unsigned int eWindow*/) {
+_HOOK_IMPL(int,TCCIMManagerBase_SetAVPID, u32 a1, u32 pid_video, u32 pid_audio, u32 a4, u32 a5 /*u32 pidVideo, u32 pidAudio, unsigned int eWindow*/) {
 	void *ra;
 	asm("move %0, $ra\n" : "=r" (ra));
-	log("TCCIMManagerBase_SetAVPID, ra:%p, a1: 0x%08x, a2: 0x%08x, a3: 0x%08x, a4: 0x%08x, a5: 0x%08x\n", a1, a2, a3, a4, a5);
-	_HOOK_DISPATCH(TCCIMManagerBase_SetAVPID, a1, a2, a3, a4, a5);
+	log("TCCIMManagerBase_SetAVPID, ra:%p, a1: 0x%08x, a2: 0x%08x, a3: 0x%08x, a4: 0x%08x, a5: 0x%08x\n",ra, a1, pid_video, pid_audio, a4, a5);
+	_HOOK_DISPATCH(TCCIMManagerBase_SetAVPID, a1, pid_video, pid_audio, a4, a5);
 
 	u32 res;
 	if (g_fltDscmb == 1) {
-		TCCIMManagerBase.MDrv_DSCMB_FltDisconnectPid(0, a1);
-		TCCIMManagerBase.MDrv_DSCMB_FltDisconnectPid(0, a2);
+		TCCIMManagerBase.MDrv_DSCMB_FltDisconnectPid(0, pid_video);
+		TCCIMManagerBase.MDrv_DSCMB_FltDisconnectPid(0, pid_audio);
 		TCCIMManagerBase.MDrv_DSCMB_FltFree(0);
 		g_fltDscmb = 0;
 	}
 	TCCIMManagerBase.MDrv_DSCMB_FltAlloc();
-	res = TCCIMManagerBase.MDrv_DSCMB_FltConnectPid( 0, a1);
+	res = TCCIMManagerBase.MDrv_DSCMB_FltConnectPid( 0, pid_video);
 	log("MDrv_DSCMB_FltConnectPid=%d\n", res);
-	res = TCCIMManagerBase.MDrv_DSCMB_FltConnectPid( 0, a2);
+	res = TCCIMManagerBase.MDrv_DSCMB_FltConnectPid( 0, pid_audio);
 	log("MDrv_DSCMB_FltConnectPid=%d\n", res);
 	res = TCCIMManagerBase.MDrv_DSCMB_FltTypeSet(0, 0);
 	log("MDrv_DSCMB_FltTypeSet=%d\n", res);
@@ -564,24 +562,23 @@ static void *socket_handler(void *ptr){
 
 					    switch (params.filter.filter[0]) {
 							case 0x80:
-
-								g_dmxParams81[0] = 0;
+								g_dmxParams81.pid = 0;
 								g_80_demux_id = demux_index;
 								g_80_filter_id = filter_num;
-								g_dmxParams80[0] = ntohs(params.pid);
-								g_dmxParams80[3] = params.filter.filter[0];
-								g_80_mask = params.filter.mask[1] & 0xff;
-								g_monHandle80 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, g_dmxParams80);/*maybe add 0x00 as parameter*/
+								g_dmxParams80.pid = ntohs(params.pid);
+								g_dmxParams80.filter = params.filter.filter[0];
+								g_dmxParams80.mask[0] = params.filter.mask[0];
+								g_monHandle80 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_dmxParams80);/*maybe add 0x00 as parameter*/
 								log("ECM80 monitor started, dmxHandle=0x%08x, monHandle=0x%08x\n", g_dmxHandle, g_monHandle80);
 								break;
 							case 0x81:
-								g_dmxParams80[0] = 0;
+								g_dmxParams80.pid = 0;
 								g_81_demux_id = demux_index;
 								g_81_filter_id = filter_num;
-								g_dmxParams81[0] = ntohs(params.pid);
-								g_dmxParams81[3] = params.filter.filter[0];
-								g_81_mask = params.filter.mask[1] & 0xff;
-								g_monHandle81 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, g_dmxParams81);/*maybe add 0x00 as parameter*/
+								g_dmxParams81.pid = ntohs(params.pid);
+								g_dmxParams81.filter = params.filter.filter[0];
+								g_dmxParams81.mask[0] = params.filter.mask[0];
+								g_monHandle81 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_dmxParams81);/*maybe add 0x00 as parameter*/
 								log("ECM81 monitor started, dmxHandle=0x%08x, monHandle=0x%08x\n", g_dmxHandle, g_monHandle81);
 								break;
 							default:
@@ -658,9 +655,7 @@ static void *socket_handler(void *ptr){
 
 						      recv(sockfd, &hops, 1, MSG_DONTWAIT);              //hops
 
-						      //log("Got ECM_INFO: adapter_index=%d, SID = %04X, CAID = %04X (%s), PID = %04X, ProvID = %06X, ECM time = %d ms, reader = %s, from = %s, protocol = %s, hops = %d\n", adapter_index, sid, caid, cardsystem, pid, prid, ecmtime, reader, from, protocol, hops);
-
-
+						      log("Got ECM_INFO: adapter_index=%d, SID = %04X, CAID = %04X (%s), PID = %04X, ProvID = %06X, ECM time = %d ms, reader = %s, from = %s, protocol = %s, hops = %d\n", adapter_index, sid, caid, cardsystem, pid, prid, ecmtime, reader, from, protocol, hops);
 					} else {
 						log("Unknown request: %02X %02X %02X %02X\n", request[0], request[1], request[2], request[3]);
 					}
