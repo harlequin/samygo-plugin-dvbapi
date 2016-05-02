@@ -54,8 +54,8 @@
 #include "util.h"
 
 /* CONFIGURATION */
-static u8* oscam_server_ip;
-static u16 oscam_server_port;
+static u8* oscam_server_ip = NULL;
+static u16 oscam_server_port = 0;
 static u8 oscam_emm_enabled;
 
 
@@ -711,6 +711,12 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 	optstr = getOptArg(argv, argc, "EMM");
 	if ( optstr ) {
 		oscam_emm_enabled = 1;
+		log("warning: emm handler activated! please be careful\n");
+	}
+
+	if ( !oscam_server_ip || oscam_server_port == 0 ) {
+		log("error: oscam network mode needs oscam server ip and oscam server port argument\n");
+		return;
 	}
 
 	tv_model = getTVModel();
