@@ -7,3 +7,6 @@ SOFTWARE IS CURRENTLY IN DEVELOPMENT
 - OSCAM_SERVER_IP:xxx.xxx.xxx.xxx - OSCAM dvbapi server address
 - OSCAM_SERVER_PORT:xxxxx - OSCAM dvbapi listenport
 - EMM - Enables emm messages
+
+### Example call format
+samyGOso -D -r -l /mtd_rwdata/oscam/libdvbapi.so OSCAM_SERVER_IP:192.168.1.49 OSCAM_SERVER_PORT:20000 EMM
