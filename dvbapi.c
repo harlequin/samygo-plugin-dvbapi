@@ -53,16 +53,10 @@
 #include "types.h"
 #include "util.h"
 
-//////////////////////////////////////////////////////////////////////////////
-//#define OSCAM_SERVER_IP xxx.xxx.xxx.xxx
-//#define OSCAM_SERVER_PORT xxxx
-//////////////////////////////////////////////////////////////////////////////
-#ifndef OSCAM_SERVER_IP
-#error "Can't compile without server ip information"
-#endif
-#ifndef OSCAM_SERVER_PORT
-#error "Can't compile without server port information"
-#endif
+/* CONFIGURATION */
+static u8* oscam_server_ip;
+static u16 oscam_server_port;
+static u8 oscam_emm_enabled;
 
 
 
@@ -449,8 +443,8 @@ static void *socket_handler(void *ptr){
 		/*---Initialize server address/port struct---*/
 		bzero(&dest, sizeof(dest));
 		dest.sin_family = AF_INET;
-		dest.sin_port = htons(OSCAM_SERVER_PORT);
-		if ( inet_pton(AF_INET, OSCAM_SERVER_IP, &dest.sin_addr) <= 0 ) {
+		dest.sin_port = htons(oscam_server_port);
+		if ( inet_pton(AF_INET, oscam_server_ip, &dest.sin_addr) <= 0 ) {
 		   log("can't set oscam server destination\n");
 		} else {
 			/*---Connect to server---*/
@@ -671,6 +665,9 @@ static void *socket_handler(void *ptr){
 }
 
 EXTERN_C void lib_init(void *_h, const char *libpath) {
+	u32 argc;
+	char *argv[100],*optstr;
+
     unsigned long *cur_addr,ret,i,k,D, LOG_ALL=0;
 
     if(_hooked) {
@@ -695,6 +692,25 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 	if ( dyn_sym_tab_init(h, TCCIMManagerBase_func_table, ARRAYSIZE(TCCIMManagerBase_func_table)) >= 0 ) {
 		set_hooks(TCCIMManagerBase_hooks, ARRAYSIZE(TCCIMManagerBase_hooks));
 		_hooked = 1;
+	}
+
+	/* commandline parameters */
+	oscam_emm_enabled = 0;
+	argc = getArgCArgV(libpath, argv);
+
+	optstr = getOptArg(argv, argc, "OSCAM_SERVER_IP:");
+	if(optstr) {
+		oscam_server_ip = optstr;
+	}
+
+	optstr = getOptArg(argv, argc, "OSCAM_SERVER_PORT:");
+	if ( optstr ) {
+		oscam_server_port = atoi(optstr);
+	}
+
+	optstr = getOptArg(argv, argc, "EMM");
+	if ( optstr ) {
+		oscam_emm_enabled = 1;
 	}
 
 	tv_model = getTVModel();
