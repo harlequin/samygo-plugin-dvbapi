@@ -491,16 +491,14 @@ static void *socket_handler(void *ptr){
 			//adapter_index -= AdapterIndexOffset;
 		}
 
-
-
 		*request = ntohl(*request);
 		if (*request == DVBAPI_CA_SET_DESCR) {
 			c_read = recv(sockfd, buf+4, sizeof(ca_descr_t), MSG_DONTWAIT);
-		}else if (*request == DVBAPI_CA_SET_PID) {
+		} else if (*request == DVBAPI_CA_SET_PID) {
 			/*TODO: Shall we use this?*/
 			c_read = recv(sockfd, buf+4, sizeof(ca_pid_t), MSG_DONTWAIT);
 			continue;
-		}else if (*request == DMX_SET_FILTER) {
+		} else if (*request == DMX_SET_FILTER) {
 			c_read = recv(sockfd, buf+4, sizeof(struct dmx_sct_filter_params), MSG_DONTWAIT);
 		} else if (*request == DVBAPI_SERVER_INFO) {
 			unsigned char len;
@@ -508,7 +506,7 @@ static void *socket_handler(void *ptr){
 			recv(sockfd, &len, 1, MSG_DONTWAIT);
 			c_read = recv(sockfd, buf+6, len, MSG_DONTWAIT);
 			buf[6+len] = 0;
-		}else if (*request == DVBAPI_ECM_INFO) {
+		} else if (*request == DVBAPI_ECM_INFO) {
 			recv(sockfd, buf+4, 14, MSG_DONTWAIT);
 		} else if (*request == CA_SET_DESCR_MODE) {
 			/*TODO: Shall we use this?*/
@@ -529,16 +527,16 @@ static void *socket_handler(void *ptr){
 		}
 
 
-			if (*request == DVBAPI_CA_SET_DESCR) {
-				ca_descr_t ca_descr;
-				memcpy(&ca_descr, &buf[4], sizeof(ca_descr_t));
-				ca_descr.index = ntohl(ca_descr.index);
-				ca_descr.parity = ntohl(ca_descr.parity);
-				log("Got CA_SET_DESCR request, index=0x%04x parity=0x%04x\n", ca_descr.index, ca_descr.parity);
+		if (*request == DVBAPI_CA_SET_DESCR) {
+			ca_descr_t ca_descr;
+			memcpy(&ca_descr, &buf[4], sizeof(ca_descr_t));
+			ca_descr.index = ntohl(ca_descr.index);
+			ca_descr.parity = ntohl(ca_descr.parity);
+			log("Got CA_SET_DESCR request, index=0x%04x parity=0x%04x\n", ca_descr.index, ca_descr.parity);
 
-				g_fltDscmb = TCCIMManagerBase.MDrv_DSCMB_FltKeySet(0 /*ca_descr.index*/ , ca_descr.parity + 1 , ca_descr.cw);
-				log("MDrv_DSCMB_FltKeySet=%d g_fltDscmb=%d\n", g_fltDscmb, g_fltDscmb);
-			}
+			g_fltDscmb = TCCIMManagerBase.MDrv_DSCMB_FltKeySet(0 /*ca_descr.index*/ , ca_descr.parity + 1 , ca_descr.cw);
+			log("MDrv_DSCMB_FltKeySet=%d g_fltDscmb=%d\n", g_fltDscmb, g_fltDscmb);
+		}
 		else if (*request == DMX_SET_FILTER) {
 			struct dmx_sct_filter_params params;
 			unsigned char demux_index = buf[4];
@@ -592,57 +590,58 @@ static void *socket_handler(void *ptr){
 			log("Got SERVER_INFO: %s, protocol_version = %d\n", &buf[6], protocol_version);
 			socket_connected = 0x01;
 
-		}else if (*request == DVBAPI_ECM_INFO) {
+		} else if (*request == DVBAPI_ECM_INFO) {
 
 			char cardsystem[255];
 			char reader[255];
 			char from[255];
 			char protocol[255];
-				unsigned char len, hops;
-				int i = 4;
+			unsigned char len, hops;
+			int i = 4;
 
-				u16 *sid_ptr = (u16 *) &buf[i];		//ServiceID
-				u16 sid = ntohs(*sid_ptr);
-				i += 2;
+			u16 *sid_ptr = (u16 *) &buf[i];		//ServiceID
+			u16 sid = ntohs(*sid_ptr);
+			i += 2;
 
-				u16 *caid_ptr = (u16 *) &buf[i];	//CAID
-				u16 caid = ntohs(*caid_ptr);
-				i += 2;
+			u16 *caid_ptr = (u16 *) &buf[i];	//CAID
+			u16 caid = ntohs(*caid_ptr);
+			i += 2;
 
-				u16 *pid_ptr = (u16 *) &buf[i];		//PID
-				u16 pid = ntohs(*pid_ptr);
-				i += 2;
+			u16 *pid_ptr = (u16 *) &buf[i];		//PID
+			u16 pid = ntohs(*pid_ptr);
+			i += 2;
 
-				u32 *prid_ptr = (u32 *) &buf[i];	//ProviderID
-				u32 prid = ntohl(*prid_ptr);
-				i += 4;
+			u32 *prid_ptr = (u32 *) &buf[i];	//ProviderID
+			u32 prid = ntohl(*prid_ptr);
+			i += 4;
 
-				u32 *ecmtime_ptr = (u32 *) &buf[i];	//ECM time
-				u32 ecmtime = ntohl(*ecmtime_ptr);
+			u32 *ecmtime_ptr = (u32 *) &buf[i];	//ECM time
+			u32 ecmtime = ntohl(*ecmtime_ptr);
 
-				//cardsystem name
-				recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
-				recv(sockfd, cardsystem, len, MSG_DONTWAIT);
-				cardsystem[len] = 0;					//terminate the string
+			//cardsystem name
+			recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
+			recv(sockfd, cardsystem, len, MSG_DONTWAIT);
+			cardsystem[len] = 0;					//terminate the string
 
-				//reader name
-				recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
-				recv(sockfd, reader, len, MSG_DONTWAIT);
-				reader[len] = 0;						//terminate the string
+			//reader name
+			recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
+			recv(sockfd, reader, len, MSG_DONTWAIT);
+			reader[len] = 0;						//terminate the string
 
-				//source (from)
-				recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
-				recv(sockfd, from, len, MSG_DONTWAIT);
-				from[len] = 0;							//terminate the string
+			//source (from)
+			recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
+			recv(sockfd, from, len, MSG_DONTWAIT);
+			from[len] = 0;							//terminate the string
 
-				//protocol name
-				recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
-				recv(sockfd, protocol, len, MSG_DONTWAIT);
-				protocol[len] = 0;						//terminate the string
+			//protocol name
+			recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
+			recv(sockfd, protocol, len, MSG_DONTWAIT);
+			protocol[len] = 0;						//terminate the string
 
-				recv(sockfd, &hops, 1, MSG_DONTWAIT);	//hops
+			recv(sockfd, &hops, 1, MSG_DONTWAIT);	//hops
 
-				log("Got ECM_INFO: adapter_index=%d, SID = %04X, CAID = %04X (%s), PID = %04X, ProvID = %06X, ECM time = %d ms, reader = %s, from = %s, protocol = %s, hops = %d\n", adapter_index, sid, caid, cardsystem, pid, prid, ecmtime, reader, from, protocol, hops);
+			log("Got ECM_INFO: adapter_index=%d, SID = %04X, CAID = %04X (%s), PID = %04X, ProvID = %06X, ECM time = %d ms, reader = %s, from = %s, protocol = %s, hops = %d\n",
+							adapter_index,sid, caid, cardsystem, pid, prid, ecmtime, reader, from, protocol, hops);
 		} else {
 			log("Unknown request: %02X %02X %02X %02X\n", request[0], request[1], request[2], request[3]);
 		}
