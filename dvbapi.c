@@ -22,7 +22,7 @@
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/mman.h>
-#include <sys/time.h>   
+#include <sys/time.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -58,13 +58,11 @@ static u8* oscam_server_ip = NULL;
 static u16 oscam_server_port = 0;
 static u8 oscam_emm_enabled;
 
-
-
-#define DMX_HANDLE_19800000 0x19800000
-#define DMX_HANDLE_LIVE 	0x19800620
-#define DMX_HANDLE_PVR  	0x19800621
-#define DMX_HANDLE_UNKNOWN 	0x19800622
-#define DMX_HANDLE_PIP  	0x19800623
+#define DMX_HANDLE_19800000	0x19800000
+#define DMX_HANDLE_LIVE	0x19800620
+#define DMX_HANDLE_PVR		0x19800621
+#define DMX_HANDLE_UNKNOWN	0x19800622
+#define DMX_HANDLE_PIP		0x19800623
 
 static u32 tv_model = 0x00;
 static pthread_t x_thread_socket_handler;
@@ -77,15 +75,15 @@ static unsigned int g_dmxHandle = DMX_HANDLE_LIVE;
 static int g_pidVideo = 0x0;
 static int g_pidAudio = 0x0;
 
-typedef struct  {
-  	/* 0 */ u32 pid;
-  	/* 1 */ u32 res;
-  	/* 2 */ u32 res2;
-  	/* 3 */ u32 filter;
-  	/* 4 */ u32 res3;
-  	/* 5 */ u32 res4;
-  	/* 6 */ u32 res5;
-  	/* 7 */ u8 mask[0x10];
+typedef struct {
+	/* 0 */ u32 pid;
+	/* 1 */ u32 res;
+	/* 2 */ u32 res2;
+	/* 3 */ u32 filter;
+	/* 4 */ u32 res3;
+	/* 5 */ u32 res4;
+	/* 6 */ u32 res5;
+	/* 7 */ u8 mask[0x10];
 } SdTSData_Settings_t;
 
 static SdTSData_Settings_t g_dmxParams80;
@@ -162,11 +160,11 @@ static void print_hash(u8 *ptr, u32 len){
 	while(len--) {
 		sprintf(buffer,"%s %02x",buffer, *ptr++);
 		if((++i % 16) == 0) {
-			log("    %s\n",  buffer);
+			log("	%s\n", buffer);
 			buffer[0] = '\0';
 		}
 	}
-	log("    %s\n",  buffer);
+	log("	%s\n", buffer);
 
 }
 
@@ -187,14 +185,14 @@ static void socket_send_filter_data(u8 demux_id, u8 filter_num, u8 *data, u32 le
 }
 
 static void socket_send_client_info() {
-	int len = sizeof(INFO_VERSION) - 1;                     //ignoring null termination
+	int len = sizeof(INFO_VERSION) - 1;					//ignoring null termination
 	unsigned char buff[7 + len];
-	u32 req = htonl(DVBAPI_CLIENT_INFO);               //type of request
+	u32 req = htonl(DVBAPI_CLIENT_INFO);				//type of request
 	memcpy(&buff[0], &req, 4);
-	u16 proto_version = htons(DVBAPI_PROTOCOL_VERSION); //supported protocol version
+	u16 proto_version = htons(DVBAPI_PROTOCOL_VERSION);	//supported protocol version
 	memcpy(&buff[4], &proto_version, 2);
 	buff[6] = len;
-	memcpy(&buff[7], &INFO_VERSION, len);                   //copy info string
+	memcpy(&buff[7], &INFO_VERSION, len);				//copy info string
 	write(sockfd, buff, sizeof(buff));
 }
 
@@ -330,7 +328,7 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, u32* data) {
 				if ( data[3] < 0x400 ) {
 					log("GOT ECM%02x\n", be8((u8 *)data[2]));
 					if (g_monHandle80 != -1){
-						socket_send_filter_data( g_80_demux_id, g_80_filter_id, ((u8*)data[2]) , data[3] );
+						socket_send_filter_data( g_80_demux_id, g_80_filter_id, ((u8*)data[2]), data[3] );
 					}
 				}
 				break;
@@ -338,7 +336,7 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, u32* data) {
 				if ( data[3] < 0x400 ) {
 					log("GOT ECM%02x\n", be8((u8 *)data[2]));
 					if (g_monHandle81 != -1){
-						socket_send_filter_data( g_81_demux_id, g_81_filter_id, ((u8*)data[2])  , data[3] );
+						socket_send_filter_data( g_81_demux_id, g_81_filter_id, ((u8*)data[2]), data[3] );
 					}
 				}
 				break;
@@ -429,23 +427,22 @@ STATIC hook_entry_t TCCIMManagerBase_hooks[] =
 
 /* SOCKET HANDLER */
 static void *socket_handler(void *ptr){
+	#define MAXBUF 512
 	log("create socket handler\n");
 
-	#define MAXBUF 512
+	struct sockaddr_in dest;
+	char buffer[MAXBUF];
 
-    struct sockaddr_in dest;
-    char buffer[MAXBUF];
-
-    /*---Open socket for streaming---*/
-    if ( (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
-    	log("socket connection error\n");
-    } else {
+	/*---Open socket for streaming---*/
+	if ( (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
+		log("socket connection error\n");
+	} else {
 		/*---Initialize server address/port struct---*/
 		bzero(&dest, sizeof(dest));
 		dest.sin_family = AF_INET;
 		dest.sin_port = htons(oscam_server_port);
 		if ( inet_pton(AF_INET, oscam_server_ip, &dest.sin_addr) <= 0 ) {
-		   log("can't set oscam server destination\n");
+			log("can't set oscam server destination\n");
 		} else {
 			/*---Connect to server---*/
 			if ( connect(sockfd, (struct sockaddr*)&dest, sizeof(dest)) != 0 ) {
@@ -464,22 +461,16 @@ static void *socket_handler(void *ptr){
 				u32 *request;
 
 				while(running==1) {
-
-
-
-
-
-
 					c_read = recv(sockfd, &buf[skip_bytes], sizeof(int)-skip_bytes, MSG_DONTWAIT);
 
 					if (c_read <= 0) {
 						//if (c_read == 0)
-					    //    break;
+						//	break;
 
 						//log that connection is broken and everything is stopped
 
-					    //cCondWait::SleepMs(20);
-					    continue;
+						//cCondWait::SleepMs(20);
+						continue;
 					}
 
 					request = (unsigned int *) &buf;
@@ -500,14 +491,14 @@ static void *socket_handler(void *ptr){
 
 
 					*request = ntohl(*request);
-				    if (*request == DVBAPI_CA_SET_DESCR) {
-				    	c_read = recv(sockfd, buf+4, sizeof(ca_descr_t), MSG_DONTWAIT);
-				    }else if (*request == DVBAPI_CA_SET_PID) {
-				    	/*TODO: Shall we use this?*/
-					    c_read = recv(sockfd, buf+4, sizeof(ca_pid_t), MSG_DONTWAIT);
-					    continue;
+					if (*request == DVBAPI_CA_SET_DESCR) {
+						c_read = recv(sockfd, buf+4, sizeof(ca_descr_t), MSG_DONTWAIT);
+					}else if (*request == DVBAPI_CA_SET_PID) {
+						/*TODO: Shall we use this?*/
+						c_read = recv(sockfd, buf+4, sizeof(ca_pid_t), MSG_DONTWAIT);
+						continue;
 					}else if (*request == DMX_SET_FILTER) {
-					    c_read = recv(sockfd, buf+4, sizeof(struct dmx_sct_filter_params), MSG_DONTWAIT);
+						c_read = recv(sockfd, buf+4, sizeof(struct dmx_sct_filter_params), MSG_DONTWAIT);
 					} else if (*request == DVBAPI_SERVER_INFO) {
 						unsigned char len;
 						recv(sockfd, buf+4, 2, MSG_DONTWAIT);
@@ -521,17 +512,17 @@ static void *socket_handler(void *ptr){
 						c_read = recv(sockfd, buf+4, sizeof(ca_descr_mode_t), MSG_DONTWAIT);
 						continue;
 					} else {
-				      log("read failed unknown command: %08x\n", *request);
-				      usleep(2000);
-				      continue;
-				    }
+						log("read failed unknown command: %08x\n", *request);
+						usleep(2000);
+						continue;
+					}
 
 
 					if (c_read <= 0) {
 						//if (c_read == 0)
-					    //    CloseConnection();
-					    //  cCondWait::SleepMs(20);
-					    continue;
+						//	CloseConnection();
+						//	cCondWait::SleepMs(20);
+						continue;
 					}
 
 
@@ -543,18 +534,18 @@ static void *socket_handler(void *ptr){
 						 log("Got CA_SET_DESCR request, index=0x%04x parity=0x%04x\n", ca_descr.index, ca_descr.parity);
 
 						 g_fltDscmb = TCCIMManagerBase.MDrv_DSCMB_FltKeySet(0 /*ca_descr.index*/ , ca_descr.parity + 1 , ca_descr.cw);
-						 log("MDrv_DSCMB_FltKeySet=%d g_fltDscmb=%d\n",  g_fltDscmb, g_fltDscmb);
+						 log("MDrv_DSCMB_FltKeySet=%d g_fltDscmb=%d\n", g_fltDscmb, g_fltDscmb);
 					 }
 					else if (*request == DMX_SET_FILTER) {
 						struct dmx_sct_filter_params params;
 						unsigned char demux_index = buf[4];
 						unsigned char filter_num = buf[5];
 						memcpy(&params, &buf[6], sizeof(struct dmx_sct_filter_params));
-					    log("Got DMX_SET_FILTER request, pid=0x%02x, byte1=0x%02x, mask1=0x%02x\n", ntohs(params.pid), params.filter.filter[0], params.filter.mask[0] );
+						log("Got DMX_SET_FILTER request, pid=0x%02x, byte1=0x%02x, mask1=0x%02x\n", ntohs(params.pid), params.filter.filter[0], params.filter.mask[0] );
 
-					    stopMonitors();
+						stopMonitors();
 
-					    switch (params.filter.filter[0]) {
+						switch (params.filter.filter[0]) {
 							case 0x80:
 								g_dmxParams81.pid = 0;
 								g_80_demux_id = demux_index;
@@ -579,13 +570,12 @@ static void *socket_handler(void *ptr){
 								break;
 						}
 
-
 					} else if(*request == DVBAPI_SERVER_INFO) {
 
 						g_SID = -1;
 
 						u8 channel[0x20];
-						u32 source = 0; /*TODO Check if source is live tv  0x00 */
+						u32 source = 0; /*TODO Check if source is live tv 0x00 */
 						TCCIMManagerBase.GetSource(*TCCIMManagerBase.g_pAppWindow, &source, 0x01);
 						TCCIMManagerBase.TCChannel_Create(channel);
 						TCCIMManagerBase.GetTvChannel(*TCCIMManagerBase.g_pAppWindow, channel, 0x01);
@@ -605,51 +595,51 @@ static void *socket_handler(void *ptr){
 						char reader[255];
 						char from[255];
 						char protocol[255];
-						      unsigned char len, hops;
-						      int i = 4;
+							unsigned char len, hops;
+							int i = 4;
 
-						      u16 *sid_ptr = (u16 *) &buf[i];       //ServiceID
-						      u16 sid = ntohs(*sid_ptr);
-						      i += 2;
+							u16 *sid_ptr = (u16 *) &buf[i];		//ServiceID
+							u16 sid = ntohs(*sid_ptr);
+							i += 2;
 
-						      u16 *caid_ptr = (u16 *) &buf[i];      //CAID
-						      u16 caid = ntohs(*caid_ptr);
-						      i += 2;
+							u16 *caid_ptr = (u16 *) &buf[i];	//CAID
+							u16 caid = ntohs(*caid_ptr);
+							i += 2;
 
-						      u16 *pid_ptr = (u16 *) &buf[i];       //PID
-						      u16 pid = ntohs(*pid_ptr);
-						      i += 2;
+							u16 *pid_ptr = (u16 *) &buf[i];		//PID
+							u16 pid = ntohs(*pid_ptr);
+							i += 2;
 
-						      u32 *prid_ptr = (u32 *) &buf[i];      //ProviderID
-						      u32 prid = ntohl(*prid_ptr);
-						      i += 4;
+							u32 *prid_ptr = (u32 *) &buf[i];	//ProviderID
+							u32 prid = ntohl(*prid_ptr);
+							i += 4;
 
-						      u32 *ecmtime_ptr = (u32 *) &buf[i];   //ECM time
-						      u32 ecmtime = ntohl(*ecmtime_ptr);
+							u32 *ecmtime_ptr = (u32 *) &buf[i];	//ECM time
+							u32 ecmtime = ntohl(*ecmtime_ptr);
 
-						      //cardsystem name
-						      recv(sockfd, &len, 1, MSG_DONTWAIT);               //string length
-						      recv(sockfd, cardsystem, len, MSG_DONTWAIT);
-						      cardsystem[len] = 0;                             //terminate the string
+							//cardsystem name
+							recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
+							recv(sockfd, cardsystem, len, MSG_DONTWAIT);
+							cardsystem[len] = 0;					//terminate the string
 
-						      //reader name
-						      recv(sockfd, &len, 1, MSG_DONTWAIT);               //string length
-						      recv(sockfd, reader, len, MSG_DONTWAIT);
-						      reader[len] = 0;                                 //terminate the string
+							//reader name
+							recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
+							recv(sockfd, reader, len, MSG_DONTWAIT);
+							reader[len] = 0;						//terminate the string
 
-						      //source (from)
-						      recv(sockfd, &len, 1, MSG_DONTWAIT);               //string length
-						      recv(sockfd, from, len, MSG_DONTWAIT);
-						      from[len] = 0;                                   //terminate the string
+							//source (from)
+							recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
+							recv(sockfd, from, len, MSG_DONTWAIT);
+							from[len] = 0;							//terminate the string
 
-						      //protocol name
-						      recv(sockfd, &len, 1, MSG_DONTWAIT);               //string length
-						      recv(sockfd, protocol, len, MSG_DONTWAIT);
-						      protocol[len] = 0;                               //terminate the string
+							//protocol name
+							recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
+							recv(sockfd, protocol, len, MSG_DONTWAIT);
+							protocol[len] = 0;						//terminate the string
 
-						      recv(sockfd, &hops, 1, MSG_DONTWAIT);              //hops
+							recv(sockfd, &hops, 1, MSG_DONTWAIT);	//hops
 
-						      log("Got ECM_INFO: adapter_index=%d, SID = %04X, CAID = %04X (%s), PID = %04X, ProvID = %06X, ECM time = %d ms, reader = %s, from = %s, protocol = %s, hops = %d\n", adapter_index, sid, caid, cardsystem, pid, prid, ecmtime, reader, from, protocol, hops);
+							log("Got ECM_INFO: adapter_index=%d, SID = %04X, CAID = %04X (%s), PID = %04X, ProvID = %06X, ECM time = %d ms, reader = %s, from = %s, protocol = %s, hops = %d\n", adapter_index, sid, caid, cardsystem, pid, prid, ecmtime, reader, from, protocol, hops);
 					} else {
 						log("Unknown request: %02X %02X %02X %02X\n", request[0], request[1], request[2], request[3]);
 					}
@@ -659,23 +649,23 @@ static void *socket_handler(void *ptr){
 			}
 
 		}
-    }
-    log("--NEVER BE HERE--\n");
-    return NULL;
+	}
+	log("--NEVER BE HERE--\n");
+	return NULL;
 }
 
 EXTERN_C void lib_init(void *_h, const char *libpath) {
 	u32 argc;
 	char *argv[100],*optstr;
 
-    unsigned long *cur_addr,ret,i,k,D, LOG_ALL=0;
+	unsigned long *cur_addr,ret,i,k,D, LOG_ALL=0;
 
-    if(_hooked) {
-        log("Injecting once is enough!\n");
-        return;
-    }
+	if(_hooked) {
+		log("Injecting once is enough!\n");
+		return;
+	}
 
-    unlink(LOG_FILE);
+	unlink(LOG_FILE);
 	log("SamyGO "LIB_TV_MODELS" lib"LIB_NAME" "LIB_VERSION" - "BUILD_GIT_TIME" (c) element 2016\n");
 
 	void *h = dlopen(0, RTLD_LAZY);
@@ -722,18 +712,18 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 	tv_model = getTVModel();
 	log("TV Model: %s\n", tvModelToStr(tv_model));
 	dlclose(h);
-    log("Hooking the system done ...\n");
+	log("Hooking the system done ...\n");
 
-    u32 init = TCCIMManagerBase.MDrv_DSCMB_Init();
-    log("MDrc_DSCMB_Init=0x%04x\n", init);
+	u32 init = TCCIMManagerBase.MDrv_DSCMB_Init();
+	log("MDrc_DSCMB_Init=0x%04x\n", init);
 
-    if(pthread_create(&x_thread_socket_handler, NULL, socket_handler, NULL)) {
-    	log("error creating socket handler thread\n");
-    }
+	if(pthread_create(&x_thread_socket_handler, NULL, socket_handler, NULL)) {
+		log("error creating socket handler thread\n");
+	}
 }
 
 EXTERN_C void lib_deinit(void *_h) {
-    log("If you see this message you forget to specify -r when invoking hijack :)\n");
+	log("If you see this message you forget to specify -r when invoking hijack :)\n");
 }
 
 
