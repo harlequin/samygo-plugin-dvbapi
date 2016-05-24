@@ -422,7 +422,30 @@ STATIC hook_entry_t TCCIMManagerBase_hooks[] =
 };
 
 
+int lookup_host (const char *host)
+{
+	void *ptr = NULL;
+	struct addrinfo hints, *res;
+	int errcode;
+	char addrstr[100];
 
+	memset (&hints, 0, sizeof (hints));
+	hints.ai_family = PF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	if(getaddrinfo(host, NULL, &hints, &res) != 0) {
+		return NULL;
+	}
+	inet_ntop (res->ai_family, res->ai_addr->sa_data, addrstr, 100);
+
+	while(res) {
+		if(res->ai_family == AF_INET) {
+			return &((struct sockaddr_in *) res->ai_addr)->sin_addr;
+		}
+		res->ai_next;
+	}
+	return NULL;
+}
 
 
 /* SOCKET HANDLER */
@@ -442,8 +465,10 @@ static void *socket_handler(void *ptr){
 	bzero(&dest, sizeof(dest));
 	dest.sin_family = AF_INET;
 	dest.sin_port = htons(oscam_server_port);
-	if ( inet_pton(AF_INET, oscam_server_ip, &dest.sin_addr) <= 0 ) {
-		log("can't set oscam server destination\n");
+
+	dest.sin_addr = lookup_host(oscam_server_ip);
+	if (!dest.sin_addr) {
+		log("can't parse/resolve oscam server destination\n");
 		return 2;
 	}
 
