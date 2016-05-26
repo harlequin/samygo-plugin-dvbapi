@@ -99,7 +99,7 @@ static u8 socket_connected = 0x00; /* will be set to 1 if handshake was done */
 static struct PMT *_pmt = NULL;
 static int protocol_version = 0;
 static u8 adapter_index;
-static int sockfd;
+static int sock;
 
 
 
@@ -180,7 +180,7 @@ static void socket_send_filter_data(u8 demux_id, u8 filter_num, u8 *data, u32 le
 	buff[4] = demux_id;
 	buff[5] = filter_num;
 	memcpy(buff + 6, data, len);
-	write(sockfd, buff, sizeof(buff));
+	write(sock, buff, sizeof(buff));
 
 }
 
@@ -193,7 +193,7 @@ static void socket_send_client_info() {
 	memcpy(&buff[4], &proto_version, 2);
 	buff[6] = len;
 	memcpy(&buff[7], &INFO_VERSION, len);				//copy info string
-	write(sockfd, buff, sizeof(buff));
+	write(sock, buff, sizeof(buff));
 }
 
 static void socket_send_pm_table(pmt_t *pmt) {
@@ -218,7 +218,7 @@ static void socket_send_pm_table(pmt_t *pmt) {
 
 	memcpy(caPMT + offset, pmt->ptr, pmt->len);
 	//print_hash((u8*)caPMT, pmt->len + offset);
-	write(sockfd, caPMT, pmt->len + offset);
+	write(sock, caPMT, pmt->len + offset);
 }
 
 static void stopMonitors() {
@@ -519,90 +519,106 @@ void handle_dvbapi_ecm_info(void *buf)
 	u32 ecmtime = ntohl(*ecmtime_ptr);
 
 	//cardsystem name
-	recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
-	recv(sockfd, cardsystem, len, MSG_DONTWAIT);
+	recv(sock, &len, 1, MSG_DONTWAIT);	//string length
+	recv(sock, cardsystem, len, MSG_DONTWAIT);
 	cardsystem[len] = 0;					//terminate the string
 
 	//reader name
-	recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
-	recv(sockfd, reader, len, MSG_DONTWAIT);
+	recv(sock, &len, 1, MSG_DONTWAIT);	//string length
+	recv(sock, reader, len, MSG_DONTWAIT);
 	reader[len] = 0;						//terminate the string
 
 	//source (from)
-	recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
-	recv(sockfd, from, len, MSG_DONTWAIT);
+	recv(sock, &len, 1, MSG_DONTWAIT);	//string length
+	recv(sock, from, len, MSG_DONTWAIT);
 	from[len] = 0;							//terminate the string
 
 	//protocol name
-	recv(sockfd, &len, 1, MSG_DONTWAIT);	//string length
-	recv(sockfd, protocol, len, MSG_DONTWAIT);
+	recv(sock, &len, 1, MSG_DONTWAIT);	//string length
+	recv(sock, protocol, len, MSG_DONTWAIT);
 	protocol[len] = 0;						//terminate the string
 
-	recv(sockfd, &hops, 1, MSG_DONTWAIT);	//hops
+	recv(sock, &hops, 1, MSG_DONTWAIT);	//hops
 
 	log("Got ECM_INFO: adapter_index=%d, SID = %04X, CAID = %04X (%s), PID = %04X, ProvID = %06X, ECM time = %d ms, reader = %s, from = %s, protocol = %s, hops = %d\n",
 					adapter_index,sid, caid, cardsystem, pid, prid, ecmtime, reader, from, protocol, hops);
 }
 
-int lookup_host (const char *host)
+void socket_open_connection()
 {
-	void *ptr = NULL;
-	struct addrinfo hints, *res;
-	int errcode;
-	char addrstr[100];
-
-	memset (&hints, 0, sizeof (hints));
-	hints.ai_family = PF_UNSPEC;
+	// connecting via TCP socket to OSCam
+	struct addrinfo hints, *servinfo, *p;
+	int rv;
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if(getaddrinfo(host, NULL, &hints, &res) != 0) {
-		return NULL;
+	if ((rv = getaddrinfo(oscam_server_ip, itoa(oscam_server_port), &hints, &servinfo)) != 0)
+	{
+		log("getaddrinfo error: %s", strerror(rv));
+		return;
 	}
-	inet_ntop (res->ai_family, res->ai_addr->sa_data, addrstr, 100);
 
-	while(res) {
-		if(res->ai_family == AF_INET) {
-			return &((struct sockaddr_in *) res->ai_addr)->sin_addr;
+	// loop through all the results and connect to the first we can
+	for (p = servinfo; p != NULL; p = p->ai_next)
+	{
+		int sockfd;
+		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+		{
+			log("%s: socket error: %s", __FUNCTION__, strerror(errno));
+			continue;
 		}
-		res->ai_next;
+		if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+		{
+			close(sockfd);
+			log("%s: connect error: %s", __FUNCTION__, strerror(errno));
+			continue;
+		}
+		sock = sockfd;
+		break; // if we get here, we must have connected successfully
 	}
-	return NULL;
+
+	if (p == NULL)
+	{
+		// looped off the end of the list with no connection
+		log("Cannot connect to OSCam. Check your configuration and firewall settings.");
+		sock = 0;
+	}
+
+	freeaddrinfo(servinfo); // all done with this structure
+
+	if (sock)
+		log("created socket with socket_fd=%d", sock);
+}
+
+void socket_close_connection()
+{
+	if (sock > 0)
+	{
+		close(sock);
+		sock = 0;
+	}
 }
 
 
 /* SOCKET HANDLER */
 static void *socket_handler(void *ptr){
-	#define MAXBUF 512
+	int faults = 0;
 	log("create socket handler\n");
 
-	struct sockaddr_in dest;
-	char buffer[MAXBUF];
-
-	/*---Open socket for streaming---*/
-	if ( (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
-		log("socket connection error\n");
-		return 1;
+	socket_open_connection();
+	if (sock > 0)
+	{
+		log("Successfully (re)connected to OSCam");
+		log("Sending DVBAPI_CLIENT_INFO ...\n");
+		faults = 0;
+		socket_send_client_info();
+		//capmt sendall
 	}
-	/*---Initialize server address/port struct---*/
-	bzero(&dest, sizeof(dest));
-	dest.sin_family = AF_INET;
-	dest.sin_port = htons(oscam_server_port);
-
-	dest.sin_addr = lookup_host(oscam_server_ip);
-	if (!dest.sin_addr) {
-		log("can't parse/resolve oscam server destination\n");
-		return 2;
+	else {
+		faults++; // unused for now
+		return NULL;
 	}
-
-	/*---Connect to server---*/
-	if ( connect(sockfd, (struct sockaddr*)&dest, sizeof(dest)) != 0 ) {
-		log("can't connect oscam server destination\n");
-		log("%s: connect error: %s", __FUNCTION__, strerror(errno));
-		return 3;
-	}
-
-	log("Client connected ... send DVBAPI_CLIENT_INFO ...\n");
-	socket_send_client_info();
 
 	int running = 1;
 	int c_read;
@@ -611,7 +627,7 @@ static void *socket_handler(void *ptr){
 	u32 *request;
 
 	while(running==1) {
-		c_read = recv(sockfd, &buf[skip_bytes], sizeof(int)-skip_bytes, MSG_DONTWAIT);
+		c_read = recv(sock, &buf[skip_bytes], sizeof(int)-skip_bytes, MSG_DONTWAIT);
 
 		if (c_read <= 0) {
 			//if (c_read == 0)
@@ -628,7 +644,7 @@ static void *socket_handler(void *ptr){
 
 		if (ntohl(*request) != DVBAPI_SERVER_INFO) {
 			// first byte -> adapter_index
-			c_read = recv(sockfd, &adapter_index, 1, MSG_DONTWAIT);
+			c_read = recv(sock, &adapter_index, 1, MSG_DONTWAIT);
 			if (c_read <= 0) {
 				//if (cRead == 0)
 				//	CloseConnection();
@@ -640,24 +656,24 @@ static void *socket_handler(void *ptr){
 
 		*request = ntohl(*request);
 		if (DVBAPI_CA_SET_DESCR == *request) {
-			c_read = recv(sockfd, buf+4, sizeof(ca_descr_t), MSG_DONTWAIT);
+			c_read = recv(sock, buf+4, sizeof(ca_descr_t), MSG_DONTWAIT);
 		} else if (DVBAPI_CA_SET_PID == *request) {
 			/*TODO: Shall we use this?*/
-			c_read = recv(sockfd, buf+4, sizeof(ca_pid_t), MSG_DONTWAIT);
+			c_read = recv(sock, buf+4, sizeof(ca_pid_t), MSG_DONTWAIT);
 			continue;
 		} else if (DMX_SET_FILTER == *request) {
-			c_read = recv(sockfd, buf+4, sizeof(struct dmx_sct_filter_params), MSG_DONTWAIT);
+			c_read = recv(sock, buf+4, sizeof(struct dmx_sct_filter_params), MSG_DONTWAIT);
 		} else if (DVBAPI_SERVER_INFO == *request) {
 			unsigned char len;
-			recv(sockfd, buf+4, 2, MSG_DONTWAIT);
-			recv(sockfd, &len, 1, MSG_DONTWAIT);
-			c_read = recv(sockfd, buf+6, len, MSG_DONTWAIT);
+			recv(sock, buf+4, 2, MSG_DONTWAIT);
+			recv(sock, &len, 1, MSG_DONTWAIT);
+			c_read = recv(sock, buf+6, len, MSG_DONTWAIT);
 			buf[6+len] = 0;
 		} else if (DVBAPI_ECM_INFO == *request) {
-			recv(sockfd, buf+4, 14, MSG_DONTWAIT);
+			recv(sock, buf+4, 14, MSG_DONTWAIT);
 		} else if (CA_SET_DESCR_MODE == *request) {
 			/*TODO: Shall we use this?*/
-			c_read = recv(sockfd, buf+4, sizeof(ca_descr_mode_t), MSG_DONTWAIT);
+			c_read = recv(sock, buf+4, sizeof(ca_descr_mode_t), MSG_DONTWAIT);
 			continue;
 		} else {
 			log("read failed unknown command: %08x\n", *request);
@@ -686,7 +702,7 @@ static void *socket_handler(void *ptr){
 		}
 
 	}
-	close(sockfd);
+	socket_close_connection();
 }
 
 EXTERN_C void lib_init(void *_h, const char *libpath) {
