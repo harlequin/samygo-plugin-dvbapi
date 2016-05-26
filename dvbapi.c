@@ -3,6 +3,9 @@
  * https://github.com/harlequin/samygo-plugin-dvbapi
  *
  * This file is part of samygo-plugin-dvbapi.
+ * The project is based on following open-source projects:
+ * vdr-plugin-dvbapi (manio): https://github.com/manio/vdr-plugin-dvbapi
+ * libOSCAM v0.4.0 (bugficks): (sorry, cannot find URL with original code)
  *
  * samygo-plugin-dvbapi is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
