@@ -16,7 +16,15 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-static const char *getTVInfo()
+enum eTV_TYPE
+{
+    TV_TYPE_NON_MST = 0,
+    TV_TYPE_MST = 1,
+    TV_TYPE_GFS_GFP = 2,
+    TV_TYPE_NT = 3,
+};
+
+static int getTVType()
 {
     static char pinfo[256] = { 0 };
     
@@ -43,8 +51,32 @@ static const char *getTVInfo()
     
     while(pinfo[nread-1] == '\n' || pinfo[nread-1] == '\r')
         pinfo[--nread] = 0;
-    
-    return pinfo;
+
+    if(strncmp("T-MST", pinfo, 5) == 0)
+        return TV_TYPE_MST;
+    else if(strncmp("T-GFS", pinfo, 5) == 0 || strncmp("T-GFP", pinfo, 5) == 0)
+        return TV_TYPE_GFS_GFP;
+    else if(strncmp("T-NT", pinfo, 4) == 0)
+        return TV_TYPE_NT;
+
+    return TV_TYPE_NON_MST;
+}
+
+static const char *tvTypeToStr(int t)
+{
+    switch(t)
+    {
+        case TV_TYPE_MST:
+            return "T-MST";
+        case TV_TYPE_GFS_GFP:
+            return "T-GFS/T-GFP";
+        case TV_TYPE_NT:
+            return "T-NT";
+        case TV_TYPE_NON_MST:
+            return "Non-MST";
+        default:
+            return "UNKNOWN";
+    }
 }
 
 enum eTV_MODEL

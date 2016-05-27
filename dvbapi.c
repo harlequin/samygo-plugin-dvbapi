@@ -68,6 +68,8 @@ static u8 oscam_emm_enabled;
 #define DMX_HANDLE_PIP		0x19800623
 
 static u32 tv_model = 0x00;
+static int tv_type = -1;
+
 static pthread_t x_thread_socket_handler;
 static int g_send_PMT_required = 1;
 static int g_SID = 0;
@@ -764,7 +766,9 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 	}
 
 	tv_model = getTVModel();
-	log("TV Model: %s\n", tvModelToStr(tv_model));
+	tv_type = getTVType();
+	log("TV Model: %s, Type: %s\n", tvModelToStr(tv_model), tvTypeToStr(tv_type));
+
 	dlclose(h);
 	log("Hooking the system done ...\n");
 
