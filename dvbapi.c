@@ -67,7 +67,7 @@ static u8 oscam_emm_enabled;
 #define DMX_HANDLE_UNKNOWN	0x19800622
 #define DMX_HANDLE_PIP		0x19800623
 
-static u32 tv_model = 0x00;
+static int tv_model = -1;
 static int tv_type = -1;
 
 static pthread_t x_thread_socket_handler;
