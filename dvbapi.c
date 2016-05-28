@@ -103,7 +103,7 @@ static u8 g_80_filter_id;
 static u8 g_81_demux_id;
 static u8 g_81_filter_id;
 
-static u8 socket_connected = 0x00; /* will be set to 1 if handshake was done */
+static u8 socket_connected = 0; /* will be set to 1 if handshake was done */
 static struct PMT *_pmt = NULL;
 static int protocol_version = 0;
 static u8 adapter_index;
@@ -494,7 +494,7 @@ void handle_dvbapi_server_info(unsigned char *buf)
 	u16 *proto_ver_ptr = (u16 *) &buf[4];
 	protocol_version = ntohs(*proto_ver_ptr);
 	log("Got SERVER_INFO: %s, protocol_version = %d\n", &buf[6], protocol_version);
-	socket_connected = 0x01;
+	socket_connected = 1;
 }
 
 void handle_dvbapi_ecm_info(unsigned char *buf)
