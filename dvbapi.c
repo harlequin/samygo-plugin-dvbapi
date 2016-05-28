@@ -179,7 +179,9 @@ static void print_hash(u8 *ptr, u32 len){
 
 
 static void socket_send_filter_data(u8 demux_id, u8 filter_num, u8 *data, u32 len) {
-	if(!socket_connected) {return;}
+	if(!socket_connected) {
+		return;
+	}
 	log("send filter data demux_id: 0x%02x filter_num: 0x%02x\n", demux_id, filter_num);
 	//log(">>>\n"); print_hash(data, len); log("<<<\n");
 	unsigned char buff[6 + len];
@@ -205,9 +207,13 @@ static void socket_send_client_info() {
 }
 
 static void socket_send_pm_table(pmt_t *pmt) {
-	if(!socket_connected) {return;}
+	if(!socket_connected) {
+		return;
+	}
 
-	if ( pmt->len == 0){return;}
+	if ( pmt->len == 0) {
+		return;
+	}
 	u8 offset = 0x0A;
 	u8 caPMT[pmt->len + offset];
 
