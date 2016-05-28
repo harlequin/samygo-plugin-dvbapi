@@ -426,7 +426,7 @@ STATIC hook_entry_t TCCIMManagerBase_hooks[] =
 #undef _HOOK_ENTRY
 };
 
-void handle_dvbapi_ca_set_descr(void *buf)
+void handle_dvbapi_ca_set_descr(unsigned char *buf)
 {
 	ca_descr_t ca_descr;
 	memcpy(&ca_descr, &buf[4], sizeof(ca_descr_t));
@@ -438,7 +438,7 @@ void handle_dvbapi_ca_set_descr(void *buf)
 	log("MDrv_DSCMB_FltKeySet=%d g_fltDscmb=%d\n", g_fltDscmb, g_fltDscmb);
 }
 
-void handle_dmx_set_filter(void *buf)
+void handle_dmx_set_filter(unsigned char *buf)
 {
 	struct dmx_sct_filter_params params;
 	unsigned char demux_index = buf[4];
@@ -474,7 +474,7 @@ void handle_dmx_set_filter(void *buf)
 	}
 }
 
-void handle_dvbapi_server_info(void *buf)
+void handle_dvbapi_server_info(unsigned char *buf)
 {
 	g_SID = -1;
 
@@ -494,9 +494,8 @@ void handle_dvbapi_server_info(void *buf)
 	socket_connected = 0x01;
 }
 
-void handle_dvbapi_ecm_info(void *buf)
+void handle_dvbapi_ecm_info(unsigned char *buf)
 {
-	handle_dvbapi_ecm_info();
 	char cardsystem[255];
 	char reader[255];
 	char from[255];
@@ -695,13 +694,13 @@ static void *socket_handler(void *ptr){
 		}
 
 		if (DVBAPI_CA_SET_DESCR == *request) {
-			handle_dvbapi_ca_set_descr(buf);
+			handle_dvbapi_ca_set_descr((unsigned char *)&buf);
 		} else if (DMX_SET_FILTER == *request) {
-			handle_dmx_set_filter(buf);
+			handle_dmx_set_filter((unsigned char *)&buf);
 		} else if(DVBAPI_SERVER_INFO == *request) {
-			handle_dvbapi_server_info(buf);
+			handle_dvbapi_server_info((unsigned char *)&buf);
 		} else if (DVBAPI_ECM_INFO == *request) {
-			handle_dvbapi_ecm_info(buf);
+			handle_dvbapi_ecm_info((unsigned char *)&buf);
 		} else {
 			log("Unknown request: %02X %02X %02X %02X\n", request[0], request[1], request[2], request[3]);
 		}
