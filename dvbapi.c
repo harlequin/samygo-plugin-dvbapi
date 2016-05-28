@@ -61,6 +61,9 @@ static u8* oscam_server_ip = NULL;
 static u16 oscam_server_port = 0;
 static u8 oscam_emm_enabled;
 
+#define SOCKET_PATH "/tmp/.listen.camd.socket"
+#define SOCKET_BACKLOG	3
+
 #define DMX_HANDLE_19800000	0x19800000
 #define DMX_HANDLE_LIVE	0x19800620
 #define DMX_HANDLE_PVR		0x19800621
@@ -707,6 +710,43 @@ static void *socket_handler(void *ptr){
 
 	}
 	socket_close_connection();
+}
+
+void start_capmt_server()
+{
+	int clientfd, running = 1;
+	struct sockaddr_un addr, peer_addr;
+	socklen_t peer_addr_size;
+
+	unlink(capmt_socket_path);
+	memset(&addr, 0, sizeof(struct sockaddr_un));
+	strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
+	addr.sun_family = AF_UNIX;
+
+	if ((sockfd = socket(addr.sun_family, SOCK_STREAM, 0)) == -1)
+	{
+		log("%s: socket error: %s", __FUNCTION__, strerror(sockfd));
+		return;
+	}
+
+	if (bind(sockfd, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) == -1)
+	{
+		log("%s: socket bind failed: %s\n", __FUNCTION__, strerror(sockfd));
+		return;
+	}
+
+	listen(sockfd, SOCKET_BACKLOG);
+	log("Listening on socket...\n");
+
+	while(running) {
+		peer_addr_size = sizeof(struct sockaddr_un);
+		clientfd = accept(sockfd, (struct sockaddr *) &peer_addr, &peer_addr_size);
+		if (clientfd == -1)
+			break;
+
+		log("Handling connected client...\n");
+		// handle stuff
+	}
 }
 
 EXTERN_C void lib_init(void *_h, const char *libpath) {
