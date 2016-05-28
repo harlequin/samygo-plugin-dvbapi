@@ -340,7 +340,7 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, u32* data) {
 
 			case 0x80:
 				if ( data[3] < 0x400 ) {
-					log("GOT ECM%02x\n", be8((u8 *)data[2]));
+					log("GOT ECM80\n");
 					if (g_monHandle80 != -1){
 						socket_send_filter_data( g_80_demux_id, g_80_filter_id, ((u8*)data[2]), data[3] );
 					}
@@ -348,7 +348,7 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, u32* data) {
 				break;
 			case 0x81:
 				if ( data[3] < 0x400 ) {
-					log("GOT ECM%02x\n", be8((u8 *)data[2]));
+					log("GOT ECM81\n");
 					if (g_monHandle81 != -1){
 						socket_send_filter_data( g_81_demux_id, g_81_filter_id, ((u8*)data[2]), data[3] );
 					}
