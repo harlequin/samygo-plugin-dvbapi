@@ -723,24 +723,24 @@ void start_capmt_server()
 	strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
 	addr.sun_family = AF_UNIX;
 
-	if ((sockfd = socket(addr.sun_family, SOCK_STREAM, 0)) == -1)
+	if ((sock = socket(addr.sun_family, SOCK_STREAM, 0)) == -1)
 	{
-		log("%s: socket error: %s", __FUNCTION__, strerror(sockfd));
+		log("%s: socket error: %s", __FUNCTION__, strerror(sock));
 		return;
 	}
 
-	if (bind(sockfd, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) == -1)
+	if (bind(sock, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) == -1)
 	{
-		log("%s: socket bind failed: %s\n", __FUNCTION__, strerror(sockfd));
+		log("%s: socket bind failed: %s\n", __FUNCTION__, strerror(sock));
 		return;
 	}
 
-	listen(sockfd, SOCKET_BACKLOG);
+	listen(sock, SOCKET_BACKLOG);
 	log("Listening on socket...\n");
 
 	while(running) {
 		peer_addr_size = sizeof(struct sockaddr_un);
-		clientfd = accept(sockfd, (struct sockaddr *) &peer_addr, &peer_addr_size);
+		clientfd = accept(sock, (struct sockaddr *) &peer_addr, &peer_addr_size);
 		if (clientfd == -1)
 			break;
 
