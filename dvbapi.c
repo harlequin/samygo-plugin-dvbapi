@@ -724,7 +724,7 @@ void start_capmt_server()
 	struct sockaddr_un addr, peer_addr;
 	socklen_t peer_addr_size;
 
-	unlink(capmt_socket_path);
+	unlink(SOCKET_PATH);
 	memset(&addr, 0, sizeof(struct sockaddr_un));
 	strncpy(addr.sun_path, SOCKET_PATH, sizeof(addr.sun_path) - 1);
 	addr.sun_family = AF_UNIX;
@@ -828,5 +828,3 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 EXTERN_C void lib_deinit(void *_h) {
 	log("If you see this message you forget to specify -r when invoking hijack :)\n");
 }
-
-
