@@ -3,6 +3,10 @@ free samygo dvbapi injection
 
 SOFTWARE IS CURRENTLY IN DEVELOPMENT
 
+Based on:
+ * vdr-plugin-dvbapi (manio): https://github.com/manio/vdr-plugin-dvbapi
+ * libOSCAM v0.4.0 (bugficks): (sorry, cannot find URL with original code)
+
 ### Command line arguments
 - OSCAM_SERVER_IP:xxx.xxx.xxx.xxx - OSCAM dvbapi server address
 - OSCAM_SERVER_PORT:xxxxx - OSCAM dvbapi listenport
