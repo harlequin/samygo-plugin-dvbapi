@@ -13,4 +13,4 @@ Based on:
 - EMM - Enables emm messages
 
 ### Example call format
-samyGOso -D -r -l /mtd_rwdata/oscam/libdvbapi.so OSCAM_SERVER_IP:192.168.1.49 OSCAM_SERVER_PORT:20000 EMM
+samyGOso -D -r -l /mtd_rwdata/oscam/libdvbapi.so OSCAM_SERVER_IP:192.168.1.48 OSCAM_SERVER_PORT:20000 EMM
