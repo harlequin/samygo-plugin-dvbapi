@@ -53,6 +53,8 @@
 #include "types.h"
 #include "util.h"
 
+#include "log.h"
+
 /* CONFIGURATION */
 static u8* oscam_server_ip = NULL;
 static u16 oscam_server_port = 0;

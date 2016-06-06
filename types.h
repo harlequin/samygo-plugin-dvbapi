@@ -135,9 +135,3 @@ typedef struct ca_descr_mode {
         enum ca_descr_algo algo;
         enum ca_descr_cipher_mode cipher_mode;
 } ca_descr_mode_t;
-
-//////////////////////////////////////////////////////////////////////////////
-#define LIB_NAME "dvbapi"
-#define LIB_VERSION "v0.0.1"
-#define LIB_TV_MODELS "D (MIPS/MSTAR)"
-#define INFO_VERSION "samygo-plugin-dvbapi " LIB_VERSION " / MODEL " LIB_TV_MODELS

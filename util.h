@@ -1,4 +1,3 @@
-#define LOG_FILE "/dtv/"LIB_NAME".log"
 #define STATIC static
 
 #define _FILE_OFFSET_BITS 64
@@ -13,45 +12,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "log.h"
 
-static int patch_adbg_CheckSystem(void *h)
-{
+static int patch_adbg_CheckSystem(void *h) {
 	return 0;
 }
-void LOG(
-        const char *fmt, ...)
-{
-#ifdef LOG_FILE
-    va_list ap;
-
-    FILE *f = fopen(LOG_FILE, "a+");
-    if(f)
-    {
-        va_start(ap, fmt);
-        vfprintf(f, fmt, ap);
-        va_end(ap);
-
-        fflush(f);
-        fclose(f);
-    }
-#endif
-}
-void vLOG(const char * restrict fmt, va_list ap)
-{
-#ifdef LOG_FILE
-    FILE *f = fopen(LOG_FILE, "a+");
-    if(f)
-    {
-        vfprintf(f, fmt, ap);
-        fflush(f);
-        fclose(f);
-    }
-#endif
-}
-#define log(...) LOG("["LIB_NAME"] "__VA_ARGS__)
-#define logh(fmt,...) LOG("["LIB_NAME"] %s, "fmt,__func__+2,__VA_ARGS__)
-#define logf(fmt,...) LOG("["LIB_NAME"] %s, "fmt,__func__,__VA_ARGS__)
-
 
 static void dumpbin(
         const char *path, const void *data, size_t cnt)
@@ -224,10 +189,11 @@ STATIC int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt)
 		if(!fn)
         	fn = dlsym(h, ctx->procs[i]);
 
-        if(!fn && !(fn=C_find(h,ctx->procs[i])))
+        if(!fn && !(fn=C_find(h,ctx->procs[i]))) {
             log("dlsym '%s' failed.\n", ctx->procs[i]);
-        else
+        } else {
             log("%s [%p].\n",  ctx->procs[i], fn);
+        }
         ctx->procs[i] = fn;
     }
     return 0;

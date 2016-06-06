@@ -6,8 +6,8 @@ GIT_VERSION := $(shell git describe --dirty --always --abbrev=4)
 
 all: ${TARGETS} 
     	
-libdvbapi.so: dvbapi.c hook.c C_support.c $(wildcard *.h) $(wildcard ../include/*.h)
-	$(CC) $(filter %.c %.cpp,$^) ${CFLAGS} -mel -shared -Wl,-soname,$@ -o $@
+libdvbapi.so: dvbapi.c hook.c C_support.c log.c $(wildcard *.h) $(wildcard ../include/*.h)
+	$(CROSS)gcc $(filter %.c %.cpp,$^) ${CFLAGS} -mel -shared -Wl,-soname,$@ -o $@
 
 clean:
 	rm -f ${TARGETS}
