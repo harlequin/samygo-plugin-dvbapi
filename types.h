@@ -2,6 +2,17 @@
 #define NULL (void *)0
 #endif
 
+#define STATIC static
+
+#define _FILE_OFFSET_BITS 64
+
+#ifndef _LARGEFILE64_H
+#define _LARGEFILE64_H
+#endif
+
+#ifndef _LARGEFILE64_SOURCE
+#define _LARGEFILE64_SOURCE 1
+#endif
 
 
 typedef unsigned char u8;
@@ -135,3 +146,6 @@ typedef struct ca_descr_mode {
         enum ca_descr_algo algo;
         enum ca_descr_cipher_mode cipher_mode;
 } ca_descr_mode_t;
+
+
+

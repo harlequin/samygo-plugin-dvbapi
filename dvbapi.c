@@ -47,7 +47,7 @@
 
 #include "hook.h"
 #include "common.h"
-#include "C_support.h"
+//#include "C_support.h"
 #include "tv_info.h"
 #include "utlist.h"
 #include "types.h"

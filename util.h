@@ -88,38 +88,34 @@ char* getOptArg(char **argv, int argc, char *option)
 
 #define cacheflush(from, size)   __clear_cache((void*)from, (void*)((unsigned long)from+size))
 
-typedef struct 
-{
-    void *fn;
-    const char *name;
-} dyn_fn_t;
 
 
 
-STATIC int dyn_sym_tab_init(
-        void *h, dyn_fn_t *fn_tab, uint32_t cnt)
-{
-    void *sdal=dlopen("libSDAL.so",RTLD_LAZY);
-    for(int i = 0; i < cnt; i++)
-    {
-		void *fn=0;
-		if(sdal)
-        	fn = dlsym(sdal, fn_tab[i].name);
-		if(!fn)
-        	fn = dlsym(h, fn_tab[i].name);
-        if(!fn)
-        {
-            log("dlsym '%s' failed.\n", fn_tab[i].name);
-            continue;
-            //return -1;
-        }
 
-        log("%s [%p].\n", fn_tab[i].name, fn);
-
-        fn_tab[i].fn = fn;
-    }
-    return 0;
-}
+//STATIC int dyn_sym_tab_init(
+//        void *h, dyn_fn_t *fn_tab, uint32_t cnt)
+//{
+//    void *sdal=dlopen("libSDAL.so",RTLD_LAZY);
+//    for(int i = 0; i < cnt; i++)
+//    {
+//		void *fn=0;
+//		if(sdal)
+//        	fn = dlsym(sdal, fn_tab[i].name);
+//		if(!fn)
+//        	fn = dlsym(h, fn_tab[i].name);
+//        if(!fn)
+//        {
+//            log("dlsym '%s' failed.\n", fn_tab[i].name);
+//            continue;
+//            //return -1;
+//        }
+//
+//        log("%s [%p].\n", fn_tab[i].name, fn);
+//
+//        fn_tab[i].fn = fn;
+//    }
+//    return 0;
+//}
 
 void log_buf(char *name, unsigned char *buf)
 {
@@ -166,38 +162,7 @@ STATIC int remove_hooks(
     }
 }
 
-typedef union
-{
-    const void *procs[100];
-    const char *names[100];
-} samyGO_CTX_t;
 
-//STATIC int samyGO_whacky_t_init(void *h, samyGO_whacky_t *ctx, uint32_t cnt)
-STATIC int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt)
-{
-    samyGO_CTX_t *ctx;
-    ctx=paramCTX;
-	void *fn;
-    void *sdal=dlopen("libSDAL.so",RTLD_LAZY);
-    for(int i = 0; i < cnt ; i++)
-    {
-        if(!ctx->procs[i])
-            continue;
-		fn=0;
-		if(sdal)
-        	fn = dlsym(sdal, ctx->procs[i]);
-		if(!fn)
-        	fn = dlsym(h, ctx->procs[i]);
-
-        if(!fn && !(fn=C_find(h,ctx->procs[i]))) {
-            log("dlsym '%s' failed.\n", ctx->procs[i]);
-        } else {
-            log("%s [%p].\n",  ctx->procs[i], fn);
-        }
-        ctx->procs[i] = fn;
-    }
-    return 0;
-}
 #include <errno.h>
 
 void *sgo_shmem_open(
