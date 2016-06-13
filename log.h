@@ -21,8 +21,8 @@
 #define LOG_H_
 
 #define LIB_NAME "dvbapi"
-#define LIB_VERSION "v0.0.1"
-#define LIB_TV_MODELS "D (MIPS/MSTAR)"
+#define LIB_VERSION "v0.1"
+#define LIB_TV_MODELS "H (T-MST)"
 #define INFO_VERSION "samygo-plugin-dvbapi " LIB_VERSION " / MODEL " LIB_TV_MODELS
 #define LOG_FILE "/dtv/"LIB_NAME".log"
 void LOG(const char *fmt, ...);

@@ -108,15 +108,29 @@ static u8 adapter_index;
 static int sockfd;
 
 
+//MDrv_DSCMB2_FltConnectFltId can replace MDrv_DSCMB_FltConnectPid
+//_ZN5TCAPI9GetWindowEN8TCWindow7EWindowE can replace g_pAppWindow
+//(00:00:36) _ZN12TCWindowImpl9GetSourceEPii ==> _ZN8TCWindow9GetSourceEPii [0xbf023c].
+//(00:00:36) _ZN12TCWindowImpl12GetTVChannelEP9TCChanneli ==> _ZN8TCWindow12GetTVChannelEP9TCChanneli [0xbf0324].
+//(00:00:36) _ZN12TCWindowImpl15SetChannelQuietEPK9TCChannelb ==> _ZN8TCWindow15SetChannelQuietEPK9TCChannelb [0xbf2fb4].
+//(00:00:36) _ZN12TCWindowImpl13GetRealSourceERi ==> _ZN8TCWindow9GetSourceEPii[0xbf0260].
+//(00:00:36) _ZN9DemuxBase18m_Demux_SICallbackEPN8CDiDemux20SICallBackSettings_tE ==>_ZN13TDsPrimeDemux15t_DemuxCallbackEPN8CDiDemux20SICallBackSettings_tE [0x869ca8].
+
+/* REWORK */
+//_ZN16TCCIMManagerBase26HostChannelChangeCompletedEP9TCChanneliN8TCWindow7ESourceE NOT EXISTING
+//(00:00:36) _Z16SdDemux_AllocatePj10SdSource_k14SdDemux_Type_k13SdDemux_Out_ki12SdMainChip_k [0x6d8fd0].
+
+/* NOT USED */
+//(00:00:36) _ZNK9TCChannel16SizeOfDescriptorEv [0xc933ac].
+//(00:00:36) _ZNK9TCChannel10DescriptorEii [0xc933ec].
 
 typedef union {
-	const void *procs[19];
+	const void *procs[18];
 	struct	{
 		const int (*SdTSData_StartMonitor)(u32 dmx_handle, SdTSData_Settings_t *a1);
 		const int (*SdTSData_StopMonitor)(u32 dmx_handle, u32 mon_handle);
 		const int (*MDrv_DSCMB_Init)(void);
 		void **g_pAppWindow;
-		const int (*TCCIMManagerBase_HostChannelChangeCompleted)(u32 a1, u32 a2, u32 a3, u32 a4, u32 a5);
 		const int (*GetSource) (void *window, int *source, int arg3);
 		const int (*GetTvChannel)(void *window, void *channel, int arg3);
 		const int (*SetChannelQuiet)(void *window, void *channel, int arg3);
@@ -124,23 +138,22 @@ typedef union {
 		const void* (*TCChannel_Destroy)(void *channel);
 		const int (*ProgramNumber)(void *this);
 		const int (*FlagScrambled)(void *this);
-		const int (*MDrv_DSCMB_FltDisconnectPid)(unsigned int u32DscmbId, unsigned int u32Pid);
-		const int (*MDrv_DSCMB_FltFree)(unsigned int u32DscmbId);
-		const int (*MDrv_DSCMB_FltConnectPid)(unsigned int u32DscmbId, unsigned int u32Pid);
-		const int (*MDrv_DSCMB_FltTypeSet)(unsigned int u32DscmbId, unsigned int eType);
+		const int (*MDrv_DSCMB_FltDisconnectPid)(u32 a1,unsigned int u32DscmbId, unsigned int u32Pid);
+		const int (*MDrv_DSCMB_FltFree)(u32 a1,unsigned int u32DscmbId);
+		const int (*MDrv_DSCMB_FltConnectPid)(u32 a1,unsigned int u32DscmbId, unsigned int u32Pid);
+		const int (*MDrv_DSCMB_FltTypeSet)(u32 a1,unsigned int u32DscmbId, unsigned int eType);
 		const int (*MDrv_DSCMB_FltAlloc)(void);
-		const int (*MDrv_DSCMB_FltKeySet)(u32 u32DscmbId, DSCMB_Key_Type eKeyType, u8 *pu8Key);
-		const int (*SdAVDec_DemuxStart) (unsigned int dmxHandle, int eDemuxOut);
+		const int (*MDrv_DSCMB_FltKeySet)(u32 a1,u32 u32DscmbId, DSCMB_Key_Type eKeyType, u8 *pu8Key);
+		const int (*msAPI_DMX_Init)(void);
 	};
 
 } TCCIMManagerBase_t;
 
 TCCIMManagerBase_t TCCIMManagerBase = {
-	(const void*)"_Z21SdTSData_StartMonitorjP19SdTSData_Settings_tj",
-	(const void*)"_Z20SdTSData_StopMonitorjj",
+	(const void*)"_Z21SdTSData_StartMonitorjP19SdTSData_Settings_tj12SdMainChip_k",
+	(const void*)"_Z20SdTSData_StopMonitorjj12SdMainChip_k",
 	(const void*)"MDrv_DSCMB_Init",
 	(const void*)"g_pAppWindow",
-	(const void*)"_ZN16TCCIMManagerBase26HostChannelChangeCompletedEP9TCChanneliN8TCWindow7ESourceE",
 	(const void*)"_ZN8TCWindow9GetSourceEPii",
 	(const void*)"_ZN8TCWindow12GetTVChannelEP9TCChanneli",
 	(const void*)"_ZN8TCWindow15SetChannelQuietEPK9TCChannelb",
@@ -148,13 +161,13 @@ TCCIMManagerBase_t TCCIMManagerBase = {
 	(const void*)"_ZN9TCChannelD2Ev",
 	(const void*)"_ZNK9TCChannel13ProgramNumberEv",
 	(const void*)"_ZNK9TCChannel13FlagScrambledEv",
-	(const void*)"MDrv_DSCMB_FltDisconnectPid",
-	(const void*)"MDrv_DSCMB_FltFree",
+	(const void*)"MDrv_DSCMB2_FltDisconnectPid",
+	(const void*)"MDrv_DSCMB2_FltFree",
 	(const void*)"MDrv_DSCMB_FltConnectPid",
-	(const void*)"MDrv_DSCMB_FltTypeSet",
-	(const void*)"MDrv_DSCMB_FltAlloc",
-	(const void*)"MDrv_DSCMB_FltKeySet",
-	(const void*)"_Z18SdAVDec_DemuxStartj18SdAVDec_DemuxOut_k",
+	(const void*)"MDrv_DSCMB2_FltTypeSet",
+	(const void*)"MDrv_DSCMB2_FltAlloc",
+	(const void*)"MDrv_DSCMB2_FltKeySet",
+	(const void*)"msAPI_DMX_Init",
 };
 
 
@@ -403,17 +416,17 @@ _HOOK_IMPL(int,TCCIMManagerBase_SetAVPID,u32 a1, u32 pid_video, u32 pid_audio, u
 
 	u32 res;
 	if (g_fltDscmb == 1) {
-		TCCIMManagerBase.MDrv_DSCMB_FltDisconnectPid(0, pid_video);
-		TCCIMManagerBase.MDrv_DSCMB_FltDisconnectPid(0, pid_audio);
-		TCCIMManagerBase.MDrv_DSCMB_FltFree(0);
+		TCCIMManagerBase.MDrv_DSCMB_FltDisconnectPid(0, 0, pid_video);
+		TCCIMManagerBase.MDrv_DSCMB_FltDisconnectPid(0, 0, pid_audio);
+		TCCIMManagerBase.MDrv_DSCMB_FltFree(0, 0);
 		g_fltDscmb = 0;
 	}
 	TCCIMManagerBase.MDrv_DSCMB_FltAlloc();
-	res = TCCIMManagerBase.MDrv_DSCMB_FltConnectPid( 0, pid_video);
+	res = TCCIMManagerBase.MDrv_DSCMB_FltConnectPid(0, 0, pid_video);
 	log("MDrv_DSCMB_FltConnectPid=%d\n", res);
-	res = TCCIMManagerBase.MDrv_DSCMB_FltConnectPid( 0, pid_audio);
+	res = TCCIMManagerBase.MDrv_DSCMB_FltConnectPid(0, 0, pid_audio);
 	log("MDrv_DSCMB_FltConnectPid=%d\n", res);
-	res = TCCIMManagerBase.MDrv_DSCMB_FltTypeSet(0, 0);
+	res = TCCIMManagerBase.MDrv_DSCMB_FltTypeSet(0, 0, 0);
 	log("MDrv_DSCMB_FltTypeSet=%d\n", res);
 
 	return (int)h_ret;
@@ -421,10 +434,10 @@ _HOOK_IMPL(int,TCCIMManagerBase_SetAVPID,u32 a1, u32 pid_video, u32 pid_audio, u
 
 STATIC dyn_fn_t TCCIMManagerBase_func_table[] = {
 	{ 0, "_ZN13TDsPrimeDemux15t_DemuxCallbackEPN8CDiDemux20SICallBackSettings_tE" },
-	{ 0, "_ZN16TCCIMManagerBase26HostChannelChangeCompletedEP9TCChanneliN8TCWindow7ESourceE" },
-	{ 0, "_Z18SdAVDec_DemuxStartj18SdAVDec_DemuxOut_k" },
-	{ 0, "_Z17SdAVDec_DemuxStopj18SdAVDec_DemuxOut_k" },
-	{ 0, "_ZN16TCCIMManagerBase8SetAVPIDEiii"},	
+	{ 0, "_ZN16TCCIMManagerPlus13ChannelChangeEPK9TCChannelP12TCSourceConf" },
+	{ 0, "_Z13SdDemux_Startj13SdDemux_Out_k12SdMainChip_k" },
+	{ 0, "_Z12SdDemux_Stopj13SdDemux_Out_k12SdMainChip_k" },
+	{ 0, "_ZN5TCCBM8SetAVPIDEii"},
 };
 
 STATIC hook_entry_t TCCIMManagerBase_hooks[] =
@@ -561,7 +574,7 @@ static void *socket_handler(void *ptr){
 						 ca_descr.parity = ntohl(ca_descr.parity);
 						 log("Got CA_SET_DESCR request, index=0x%04x parity=0x%04x\n", ca_descr.index, ca_descr.parity);
 
-						 g_fltDscmb = TCCIMManagerBase.MDrv_DSCMB_FltKeySet(0 /*ca_descr.index*/ , ca_descr.parity + 1 , ca_descr.cw);
+						 g_fltDscmb = TCCIMManagerBase.MDrv_DSCMB_FltKeySet(0, 0 /*ca_descr.index*/ , ca_descr.parity + 1 , ca_descr.cw);
 						 log("MDrv_DSCMB_FltKeySet=%d g_fltDscmb=%d\n",  g_fltDscmb, g_fltDscmb);
 					 }
 
@@ -723,10 +736,17 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 
 	patch_adbg_CheckSystem(h);
 
-	samyGO_whacky_t_init(h, &TCCIMManagerBase, ARRAYSIZE(TCCIMManagerBase.procs));
+	if ( samyGO_whacky_t_init(h, &TCCIMManagerBase, ARRAYSIZE(TCCIMManagerBase.procs)) == 1) {
+		log("fatal error in loading detour ... abort\n");
+		return;
+	}
+
 	if ( dyn_sym_tab_init(h, TCCIMManagerBase_func_table, ARRAYSIZE(TCCIMManagerBase_func_table)) >= 0 ) {
 		set_hooks(TCCIMManagerBase_hooks, ARRAYSIZE(TCCIMManagerBase_hooks));
 		_hooked = 1;
+	} else {
+		log("fatal error in loading hooks ... abort\n");
+		return;
 	}
 
 	/* commandline parameters */

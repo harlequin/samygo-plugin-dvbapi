@@ -27,8 +27,7 @@ int dyn_sym_tab_init(void *h, dyn_fn_t *fn_tab, uint32_t cnt) {
         if(!fn)
         {
             log("dlsym '%s' failed.\n", fn_tab[i].name);
-            continue;
-            //return -1;
+            return -1;
         }
 
         log("%s [%p].\n", fn_tab[i].name, fn);
@@ -56,6 +55,7 @@ int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt) {
 
         if(!fn && !(fn=C_find(h,ctx->procs[i]))) {
             log("dlsym '%s' failed.\n", ctx->procs[i]);
+            return 1;
         } else {
             log("%s [%p].\n",  ctx->procs[i], fn);
         }

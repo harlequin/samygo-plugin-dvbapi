@@ -1,16 +1,14 @@
-TARGETS=libdvbapi.so
- 
-CFLAGS += -fPIC -O2 -std=gnu99 -I../include -mglibc -march=34kc
+CFLAGS += -fPIC -O2 -std=gnu99 -I../include -mglibc
 CFLAGS += -ldl -DBUILD_GIT_SHA=\"$(GIT_VERSION)\"
-GIT_VERSION := $(shell git describe --dirty --always --abbrev=4)
+GIT_VERSION := $(shell git describe --dirty --always --abbrev=7)
+APP=libdvbapi_H_T-MST-${GIT_VERSION}.so
 
-all: ${TARGETS} 
+all: dvbapi.c hook.c C_support.c log.c $(wildcard *.h) $(wildcard ../include/*.h)
+	$(CROSS)gcc $(filter %.c %.cpp,$^) ${CFLAGS} -shared -Wl,-soname,${APP} -o ${APP}
     	
-libdvbapi.so: dvbapi.c hook.c C_support.c log.c $(wildcard *.h) $(wildcard ../include/*.h)
-	$(CROSS)gcc $(filter %.c %.cpp,$^) ${CFLAGS} -mel -shared -Wl,-soname,$@ -o $@
 
 clean:
-	rm -f ${TARGETS}
+	rm -f libdvbapi*.so
 
 ifeq (${TARGET_IP}, )
 endif
