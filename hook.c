@@ -17,6 +17,7 @@ typedef union
 
 
 int dyn_sym_tab_init(void *h, dyn_fn_t *fn_tab, uint32_t cnt) {
+	int result = 0;
     void *sdal=dlopen("libSDAL.so",RTLD_LAZY);
     for(int i = 0; i < cnt; i++) {
 		void *fn=0;
@@ -27,23 +28,26 @@ int dyn_sym_tab_init(void *h, dyn_fn_t *fn_tab, uint32_t cnt) {
         if(!fn)
         {
             log("dlsym '%s' failed.\n", fn_tab[i].name);
-            return -1;
+            result = -1;
+            continue;
         }
 
         log("%s [%p].\n", fn_tab[i].name, fn);
 
         fn_tab[i].fn = fn;
     }
-    return 0;
+    return result;
 }
 
 
 
 int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt) {
+	int result = 0;
     samyGO_CTX_t *ctx;
     ctx=paramCTX;
 	void *fn;
     void *sdal=dlopen("libSDAL.so",RTLD_LAZY);
+
     for(int i = 0; i < cnt ; i++) {
         if(!ctx->procs[i])
             continue;
@@ -55,13 +59,14 @@ int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt) {
 
         if(!fn && !(fn=C_find(h,ctx->procs[i]))) {
             log("dlsym '%s' failed.\n", ctx->procs[i]);
-            return 1;
+            result++;
+            continue;
         } else {
             log("%s [%p].\n",  ctx->procs[i], fn);
         }
         ctx->procs[i] = fn;
     }
-    return 0;
+    return result;
 }
 
 
