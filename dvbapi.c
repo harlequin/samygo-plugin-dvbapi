@@ -130,7 +130,7 @@ typedef union {
 		const int (*SdTSData_StartMonitor)(u32 dmx_handle, SdTSData_Settings_t *a1);
 		const int (*SdTSData_StopMonitor)(u32 dmx_handle, u32 mon_handle);
 		const int (*MDrv_DSCMB_Init)(void);
-		void **g_pAppWindow;
+		void* (*TCAPI_GetWindow) (void /*void *this, void *window*/);
 		const int (*GetSource) (void *window, int *source, int arg3);
 		const int (*GetTvChannel)(void *window, void *channel, int arg3);
 		const int (*SetChannelQuiet)(void *window, void *channel, int arg3);
@@ -153,7 +153,7 @@ TCCIMManagerBase_t TCCIMManagerBase = {
 	(const void*)"_Z21SdTSData_StartMonitorjP19SdTSData_Settings_tj12SdMainChip_k",
 	(const void*)"_Z20SdTSData_StopMonitorjj12SdMainChip_k",
 	(const void*)"MDrv_DSCMB_Init",
-	(const void*)"g_pAppWindow",
+	(const void*)"_ZN5TCAPI9GetWindowEN8TCWindow7EWindowE",
 	(const void*)"_ZN8TCWindow9GetSourceEPii",
 	(const void*)"_ZN8TCWindow12GetTVChannelEP9TCChanneli",
 	(const void*)"_ZN8TCWindow15SetChannelQuietEPK9TCChannelb",
@@ -634,12 +634,12 @@ static void *socket_handler(void *ptr){
 
 						u8 channel[0x20];
 						u32 source = 0; /*TODO Check if source is live tv  0x00 */
-						TCCIMManagerBase.GetSource(*TCCIMManagerBase.g_pAppWindow, &source, 0x01);
+						TCCIMManagerBase.GetSource(TCCIMManagerBase.TCAPI_GetWindow(), &source, 0x01);
 						TCCIMManagerBase.TCChannel_Create(channel);
-						TCCIMManagerBase.GetTvChannel(*TCCIMManagerBase.g_pAppWindow, channel, 0x01);
+						TCCIMManagerBase.GetTvChannel(TCCIMManagerBase.TCAPI_GetWindow(), channel, 0x01);
 						int scrambled = TCCIMManagerBase.FlagScrambled(channel);
 						if ( scrambled != 0) {
-							TCCIMManagerBase.SetChannelQuiet(*TCCIMManagerBase.g_pAppWindow, channel, 0x01);
+							TCCIMManagerBase.SetChannelQuiet(TCCIMManagerBase.TCAPI_GetWindow(), channel, 0x01);
 						}
 
 						u16 *proto_ver_ptr = (u16 *) &buf[4];
