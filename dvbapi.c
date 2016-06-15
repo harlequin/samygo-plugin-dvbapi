@@ -41,18 +41,15 @@
 #include <netdb.h>
 #include <pthread.h> /* socket handler */
 #include <arpa/inet.h> /* inet_pton */
+#include <unistd.h>
+#include "utlist.h"
 
 #include "version.h"
-
-
 #include "hook.h"
 #include "common.h"
-//#include "C_support.h"
 #include "tv_info.h"
-#include "utlist.h"
 #include "types.h"
 #include "util.h"
-
 #include "log.h"
 
 /* CONFIGURATION */
@@ -76,33 +73,46 @@ static int _hooked = 0;
 static int g_fltDscmb = 0;
 static unsigned int g_dmxHandle = DMX_HANDLE_LIVE;
 
-static int g_pidVideo = 0x0;
-static int g_pidAudio = 0x0;
 
+#define FILTER_MASK_SIZE 16
 typedef struct  {
-  	/* 0 */ u32 pid;
+  	/* 0 */ u16 pid;
+  	//		u16 res_pid;
   	/* 1 */ u32 res;
   	/* 2 */ u32 res2;
-  	/* 3 */ u32 filter;
-  	/* 4 */ u32 res3;
-  	/* 5 */ u32 res4;
-  	/* 6 */ u32 res5;
-  	/* 7 */ u8 mask[0x10];
+  	/* 3 */ u8 filter[16];
+  	//u16 res3;
+  	///* 4 */ u32 res3;
+  	///* 5 */ u32 res4;
+  	///* 6 */ u32 res5;
+  	/* 7 */ u8 mask[16];
+  	//u16 res4;
 } SdTSData_Settings_t;
 
-static SdTSData_Settings_t g_dmxParams80;
-static SdTSData_Settings_t g_dmxParams81;
+static SdTSData_Settings_t g_dmxParams;
+static s32 g_dmxMonHandle = -1;
+static s32 g_dmxTableId = -1;
+static u8 g_dmx_demux_id;
+static u8 g_dmx_filter_id;
 
-static s32 g_monHandle81 = -1;
-static s32 g_monHandle80 = -1;
+typedef struct DEMUX_FILTER {
+	u16 tableId;
+	s32 monHandle;
+	u8 demuxId;
+	u8 filterId;
+	struct DEMUX_FILTER *next;
+} demux_filter_t;
+static demux_filter_t *g_demux_filter = NULL;
 
-static u8 g_80_demux_id;
-static u8 g_80_filter_id;
-static u8 g_81_demux_id;
-static u8 g_81_filter_id;
+static SdTSData_Settings_t g_emmParams;
+
+
+
+
+
+
 
 static u8 socket_connected = 0x00; /* will be set to 1 if handshake was done */
-static struct PMT *_pmt = NULL;
 static int protocol_version = 0;
 static u8 adapter_index;
 static int sockfd;
@@ -230,34 +240,27 @@ static void socket_send_pm_table(pmt_t *pmt) {
 static void stopMonitors() {
 	u32 ret;
 
-	if (g_monHandle80 >= 0) {
-		ret = TCCIMManagerBase.SdTSData_StopMonitor(g_dmxHandle, g_monHandle80);
-		log("ECM80 monitor stopped, dmxHandle=0x%08x, monHandle=0x%08x, ret=0x%08x\n", g_dmxHandle, g_monHandle80, ret);
-		g_monHandle80 = -1;
-	}
-	if (g_monHandle81 >= 0) {
-		ret = TCCIMManagerBase.SdTSData_StopMonitor(g_dmxHandle, g_monHandle81);
-		log("ECM81 monitor stopped, dmxHandle=0x%08x, monHandle=0x%08x, ret=0x%08x\n", g_dmxHandle, g_monHandle81, ret);
-		g_monHandle81 = -1;
+	if (g_dmxMonHandle >= 0) {
+		ret = TCCIMManagerBase.SdTSData_StopMonitor(g_dmxHandle, g_dmxMonHandle);
+		log("ECM%02X monitor stopped, dmxHandle=0x%08x, monHandle=0x%08x, ret=0x%08x\n",g_dmxTableId, g_dmxHandle, g_dmxMonHandle, ret);
+		g_dmxMonHandle = -1;
+		g_dmxTableId = -1;
 	}
 }
 
 
 static void changeMonitor(unsigned int dmxHandle) {
+	if ( g_dmxTableId == -1) {
+		return;
+	}
+
 	stopMonitors();
 
 	g_dmxHandle = dmxHandle;
 	log("using dmxHandle=0x%08X\n", dmxHandle);
 
-	if ( g_dmxParams80.pid != 0x00) {
-		g_monHandle80 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_dmxParams80);/*maybe add 0x00 as parameter*/
-		log("ECM80 monitor restarted, dmxHandle=0x%08x, monHandle=0x%08x\n", g_dmxHandle, g_monHandle80);
-	}
-
-	if ( g_dmxParams81.pid != 0x00 ) {
-		g_monHandle81 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_dmxParams81);/*maybe add 0x00 as parameter*/
-		log("ECM81 monitor restarted, dmxHandle=0x%08x, monHandle=0x%08x\n", g_dmxHandle, g_monHandle81);
-	}
+	g_dmxMonHandle = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_dmxParams);
+	log("ECM%02x monitor restarted, dmxHandle=0x%08x, monHandle=0x%08x\n",g_dmxTableId, g_dmxHandle, g_dmxMonHandle);
 }
 
 
@@ -273,6 +276,7 @@ _HOOK_IMPL(int,SdAVDec_DemuxStop, unsigned int dmxHandle, int eDemuxOut) {
 			break;
 		case DMX_HANDLE_PIP:
 		case DMX_HANDLE_PVR:
+			log("CHANGE MONITOR NORMALY ...\n");
 			changeMonitor(DMX_HANDLE_LIVE);
 			break;
 		default:
@@ -296,7 +300,7 @@ _HOOK_IMPL(int,SdAVDec_DemuxStart, unsigned int dmxHandle, int eDemuxOut) {
 	return (int)h_ret;
 }
 
-
+static u8 g_emm_send = 0;
 
 _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, u32* data) {
 	//log("DemuxBase_m_Demux_SICallback, ra: %p, hmon=0x%08X, pid=0x%08X, buf=0x%08X, len=0x%08X\n", ra, SICallBackSettings_t[0], SICallBackSettings_t[1],SICallBackSettings_t[2],SICallBackSettings_t[3]);
@@ -311,70 +315,34 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, u32* data) {
 
 	if ( data[3] > 0 ) {
 
-		switch (be8((u8 *)data[2])) {
-			case 0x02:
-				sid = be16( ((u8*)data[2]) + 0x03 );
+		if ( be8((u8 *)data[2]) == 0x02 ) {
 
-				/* skip empty sid */
-				if ( sid == 0x00 ) {
-					break;
-				}
+			sid = be16( ((u8*)data[2]) + 0x03 );
 
-				/* skip empty sid */
-				if ( sid == g_SID && g_send_PMT_required == 1 ) {
-					//LL_SEARCH_SCALAR(_pmt, buf, sid, sid);
-					//if ( !buf ) {
-						//log("GOT PMT SID: 0x%04x\n", sid);
-						buf = malloc(sizeof(pmt_t));
-						//print_hash((u8*)data[2], data[3]);
-						buf->sid = sid;
-						buf->lm = PMT_LIST_FIRST | PMT_LIST_LAST;
-						buf->len = be8(((u8*)data[2]) + 0x02) + 0x03 - 0x0A;
-						buf->ptr = malloc(buf->len);
-						memcpy(buf->ptr, ((u8*)data[2]) + 0x0A , buf->len);
-						socket_send_pm_table(buf);
-						g_send_PMT_required = 0;
-						//LL_APPEND(_pmt, buf);
-						//g_send_PMT_required = 1;
-					//}
-				}
-				break;
+			if ( sid == 0x00 ) {
+				 return (int)h_ret;
+			}
 
-			case 0x82:
-				log("GOT ECM82 !!!\n");
-				break;
+			if ( sid == g_SID && g_send_PMT_required == 1 ) {
+				buf = malloc(sizeof(pmt_t));
+				buf->sid = sid;
+				buf->lm = PMT_LIST_FIRST | PMT_LIST_LAST;
+				buf->len = be8(((u8*)data[2]) + 0x02) + 0x03 - 0x0A;
+				buf->ptr = malloc(buf->len);
+				memcpy(buf->ptr, ((u8*)data[2]) + 0x0A , buf->len);
+				socket_send_pm_table(buf);
+				g_send_PMT_required = 0;
+			}
 
-			case 0x80:
-				if ( data[3] < 0x400 ) {
-					log("GOT ECM%02x\n", be8((u8 *)data[2]));
-					if (g_monHandle80 != -1){
-						socket_send_filter_data( g_80_demux_id, g_80_filter_id, ((u8*)data[2]) , data[3] );
-					}
-				}
-				break;
-			case 0x81:
-				if ( data[3] < 0x400 ) {
-					log("GOT ECM%02x\n", be8((u8 *)data[2]));
-					if (g_monHandle81 != -1){
-						socket_send_filter_data( g_81_demux_id, g_81_filter_id, ((u8*)data[2])  , data[3] );
-					}
-				}
-				break;
-
-			default:
-				//print_hash((u8 *)data[2], data[3]);
-				break;
+		} else {
+			demux_filter_t *filter;
+			LL_SEARCH_SCALAR(g_demux_filter, filter, monHandle, data[0]);
+			if ( filter ) {
+				log(">> EMM%02x ... hmon:0x%08x send data\n", be8((u8 *)data[2]), data[0]);
+				socket_send_filter_data( filter->demuxId, filter->filterId, ((u8*)data[2]) , data[3] );
+			}
 		}
-
 	}
-
-//	if(g_send_PMT_required == 1) {
-//		LL_SEARCH_SCALAR(_pmt, buf, sid, g_SID);
-//		if ( buf ) {
-//			socket_send_pm_table(buf);
-//			g_send_PMT_required = 0;
-//		}
-//	}
 
 	return (int)h_ret;
 }
@@ -483,6 +451,7 @@ static void *socket_handler(void *ptr){
 
 
 
+					usleep(200);
 
 
 
@@ -566,15 +535,13 @@ static void *socket_handler(void *ptr){
 					 }
 
 					 else if (*request == DVBAPI_DMX_STOP) {
-						 stopMonitors();
-//						 unsigned char demux_index = buff[4];
-//						       unsigned char filter_num = buff[5];
-//
-//						       uint16_t *pid_ptr = (uint16_t *) &buff[6];
-//						       uint16_t pid = ntohs(*pid_ptr);
-//
-//						       DEBUGLOG("%s: Got DMX_STOP request, adapter_index=%d, pid=%X, demux_idx=%d, filter_num=%d", __FUNCTION__, adapter_index, pid, demux_index, filter_num);
-//						       filter->SetFilter(adapter_index, pid, 0, demux_index, filter_num, NULL, NULL);
+						 log("<< DVBAPI_DMX_STOP request ...\n");
+//						 stopMonitors();
+//						 unsigned char demux_index = buf[4];
+//						 unsigned char filter_num = buf[5];
+//						 u16 *pid_ptr = (u16 *) &buf[6];
+//						 u16 pid = ntohs(*pid_ptr);
+//						 log("<< DMX_STOP request, adapter_index=%d, pid=%X, demux_idx=%d, filter_num=%d\n", __FUNCTION__, adapter_index, pid, demux_index, filter_num);
 					 }
 
 
@@ -585,35 +552,37 @@ static void *socket_handler(void *ptr){
 						memcpy(&params, &buf[6], sizeof(struct dmx_sct_filter_params));
 					    log("Got DMX_SET_FILTER request, pid=0x%02x, byte1=0x%02x, mask1=0x%02x\n", ntohs(params.pid), params.filter.filter[0], params.filter.mask[0] );
 
-					    stopMonitors();
+					    /* This pid zero still occurs because the pmt is not send correctly */
+					    if ( ntohs(params.pid) != 0x00 ) {
+					    	demux_filter_t *filter;
 
-					    switch (params.filter.filter[0]) {
-							case 0x80:
+					    	LL_SEARCH_SCALAR(g_demux_filter, filter, filterId, filter_num );
+					    	if(!filter) {
+					    		filter = malloc(sizeof(demux_filter_t));
+					    		filter->tableId = -1;
+					    		filter->filterId = filter_num;
+					    		filter->demuxId = demux_index;
+					    		filter->monHandle = -1;
+					    		LL_APPEND(g_demux_filter, filter);
+					    	}
 
-								g_dmxParams81.pid = 0;
-								g_80_demux_id = demux_index;
-								g_80_filter_id = filter_num;
-								g_dmxParams80.pid = ntohs(params.pid);
-								g_dmxParams80.filter = params.filter.filter[0];
-								g_dmxParams80.mask[0] = params.filter.mask[0];
-								g_monHandle80 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_dmxParams80);/*maybe add 0x00 as parameter*/
-								log("ECM80 monitor started, dmxHandle=0x%08x, monHandle=0x%08x\n", g_dmxHandle, g_monHandle80);
-								break;
-							case 0x81:
+					    	if (filter->monHandle != -1) {
+					    		u32 ret = TCCIMManagerBase.SdTSData_StopMonitor(g_dmxHandle, filter->monHandle);
+					    		log("EMM%02X monitor stopped, dmxHandle=0x%08x, monHandle=0x%08x, ret=0x%08x\n",filter->tableId, g_dmxHandle, filter->monHandle, ret);
+					    		filter->monHandle = -1;
+					    		filter->tableId = -1;
+					    	}
 
-								g_dmxParams80.pid = 0;
-								g_81_demux_id = demux_index;
-								g_81_filter_id = filter_num;
-								g_dmxParams81.pid = ntohs(params.pid);
-								g_dmxParams81.filter = params.filter.filter[0];
-								g_dmxParams81.mask[0] = params.filter.mask[0];
-								g_monHandle81 = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_dmxParams81);/*maybe add 0x00 as parameter*/
-								log("ECM81 monitor started, dmxHandle=0x%08x, monHandle=0x%08x\n", g_dmxHandle, g_monHandle81);
-								break;
-							default:
-								break;
-						}
+					    	g_emmParams.pid = ntohs(params.pid);
+					    	memcpy(g_emmParams.filter, params.filter.filter, FILTER_MASK_SIZE);
+					    	memcpy(g_emmParams.mask, params.filter.mask, FILTER_MASK_SIZE);
 
+					    	filter->tableId = params.filter.filter[0];
+					    	filter->demuxId = demux_index;
+					    	filter->filterId = filter_num;
+			    			filter->monHandle = TCCIMManagerBase.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_emmParams);
+			    			log("EMM%02x monitor started, dmxHandle=0x%08x, monHandle=0x%08x\n",filter->tableId, g_dmxHandle, filter->monHandle);
+					    }
 
 					} else if(*request == DVBAPI_SERVER_INFO) {
 
@@ -753,6 +722,7 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 		log("error: oscam network mode needs oscam server ip and oscam server port argument\n");
 		return;
 	}
+
 
 	tv_model = getTVModel();
 	log("TV Model: %s\n", tvModelToStr(tv_model));
