@@ -24,6 +24,21 @@
 #ifndef BUILD_GIT_SHA
   #define BUILD_GIT_SHA "no-version information"
 #endif
+
 #define BUILD_GIT_TIME __DATE__ " - " __TIME__
+
+#ifndef LIB_NAME
+  #define LIB_NAME "dvbapi"
+#endif
+
+#ifndef LIB_VERSION
+  #define LIB_VERSION "unknown"
+#endif
+
+#ifndef LIB_TV_MODELS
+  #define LIB_TV_MODELS "unknown"
+#endif
+
+#define INFO_VERSION LIB_NAME LIB_VERSION " / MODEL " LIB_TV_MODELS
 
 #endif /* VERSION_H_ */

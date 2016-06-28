@@ -4,6 +4,9 @@ CFLAGS += -fPIC -O2 -std=gnu99 -I../include -mglibc -march=34kc
 CFLAGS += -ldl -DBUILD_GIT_SHA=\"$(GIT_VERSION)\"
 GIT_VERSION := $(shell git describe --dirty --always --abbrev=4)
 
+# DEFAULT VERSION INFORMATION
+CFLAGS += -DLIB_NAME=\""dvbapi"\" -DLIB_VERSION=\""v0.1"\" -DLIB_TV_MODELS=\""D T-MST"\"
+
 all: ${TARGETS} 
     	
 libdvbapi.so: dvbapi.c hook.c C_support.c log.c $(wildcard *.h) $(wildcard ../include/*.h)
