@@ -55,7 +55,7 @@ static demux_filter_t *g_demux_filter = NULL;
 static SdTSData_Settings_t g_emmParams;
 
 typedef union {
-	const void *procs[19];
+	const void *procs[18];
 	struct	{
 		const int (*SdTSData_StartMonitor)(u32 dmx_handle, SdTSData_Settings_t *a1);
 		const int (*SdTSData_StopMonitor)(u32 dmx_handle, u32 mon_handle);
@@ -75,7 +75,6 @@ typedef union {
 		const int (*MDrv_DSCMB_FltTypeSet)(unsigned int u32DscmbId, unsigned int eType);
 		const int (*MDrv_DSCMB_FltAlloc)(void);
 		const int (*MDrv_DSCMB_FltKeySet)(u32 u32DscmbId, DSCMB_Key_Type eKeyType, u8 *pu8Key);
-		const int (*SdAVDec_DemuxStart) (unsigned int dmxHandle, int eDemuxOut);
 	};
 
 } api_callbacks_t;
@@ -99,7 +98,6 @@ api_callbacks_t api_callbacks = {
 		(const void*)"MDrv_DSCMB_FltTypeSet",
 		(const void*)"MDrv_DSCMB_FltAlloc",
 		(const void*)"MDrv_DSCMB_FltKeySet",
-		(const void*)"_Z18SdAVDec_DemuxStartj18SdAVDec_DemuxOut_k",
 };
 
 static void stopMonitors() {
@@ -270,6 +268,8 @@ STATIC hook_entry_t TCCIMManagerBase_hooks[] =
 #undef _HOOK_ENTRY
 };
 
+
+//////////////////////////////////////////////////////////////////////////////
 
 int dvbapi_install(void *h) {
 	int res = 0;
