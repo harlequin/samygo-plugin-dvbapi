@@ -20,6 +20,8 @@
 #ifndef LOG_H_
 #define LOG_H_
 
+#include "types.h"
+
 #define LIB_NAME "dvbapi"
 #define LIB_VERSION "v0.0.1"
 #define LIB_TV_MODELS "D (MIPS/MSTAR)"
@@ -29,5 +31,7 @@ void LOG(const char *fmt, ...);
 #define log(...) LOG("["LIB_NAME"] "__VA_ARGS__);
 #define logh(fmt,...) LOG("["LIB_NAME"] %s, "fmt,__func__+2,__VA_ARGS__)
 #define logf(fmt,...) LOG("["LIB_NAME"] %s, "fmt,__func__,__VA_ARGS__)
+
+void print_hash(u8 *ptr, u32 len);
 
 #endif /* LOG_H_ */

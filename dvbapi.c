@@ -169,20 +169,7 @@ TCCIMManagerBase_t TCCIMManagerBase = {
 
 
 
-static void print_hash(u8 *ptr, u32 len){
-	char buffer[1024] = "";
-	u8 i = 0;
 
-	while(len--) {
-		sprintf(buffer,"%s %02x",buffer, *ptr++);
-		if((++i % 16) == 0) {
-			log("    %s\n",  buffer);
-			buffer[0] = '\0';
-		}
-	}
-	log("    %s\n",  buffer);
-
-}
 
 
 
