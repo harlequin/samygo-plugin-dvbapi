@@ -49,7 +49,6 @@
 #include "common.h"
 #include "tv_info.h"
 #include "types.h"
-#include "util.h"
 #include "log.h"
 
 /* CONFIGURATION */
@@ -653,6 +652,41 @@ static void *socket_handler(void *ptr){
     }
     log("--NEVER BE HERE--\n");
     return NULL;
+}
+
+
+
+int getArgCArgV(const char *libpath, char **argv) {
+    const int EXTRA_COOKIE = 0x82374021;
+
+    uint32_t argc = 1;
+    argv[0] = (char *)libpath;
+    void *mem = (void*)(libpath + strlen(libpath) + 1);
+
+    uint32_t aligned = (uint32_t)mem;
+    aligned = (aligned + 3) & ~3;
+
+    uint32_t *extra = (uint32_t*)aligned;
+    if(extra[0] != EXTRA_COOKIE)
+        return 0;
+
+    argc += extra[1];
+    uint32_t *_argv = &extra[2];
+    for(int i = 0; i < argc; i++)
+        argv[i + 1] = (char *)(aligned + _argv[i]);
+
+    return argc;
+}
+
+char* getOptArg(char **argv, int argc, char *option) {
+    for(int i=0;i<argc;i++)
+    {
+        if(strstr(argv[i],option)==argv[i])
+        {
+            return argv[i]+strlen(option);
+        }
+    }
+    return 0;
 }
 
 EXTERN_C void lib_init(void *_h, const char *libpath) {
