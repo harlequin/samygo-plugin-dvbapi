@@ -169,4 +169,24 @@ typedef struct ca_descr_mode {
         enum ca_descr_cipher_mode cipher_mode;
 } ca_descr_mode_t;
 
+typedef struct  {
+  	/* 0 */ u16 pid;
+  	//		u16 res_pid;
+  	/* 1 */ u32 res;
+  	/* 2 */ u32 res2;
+  	/* 3 */ u8 filter[16];
+  	//u16 res3;
+  	///* 4 */ u32 res3;
+  	///* 5 */ u32 res4;
+  	///* 6 */ u32 res5;
+  	/* 7 */ u8 mask[16];
+  	//u16 res4;
+} SdTSData_Settings_t;
+
+typedef struct {
+	u8 demux_index;
+	u8 filter_number;
+	u16 pid;
+} stop_filter_t;
+
 #endif

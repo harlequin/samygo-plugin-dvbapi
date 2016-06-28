@@ -9,7 +9,7 @@ CFLAGS += -DLIB_NAME=\""dvbapi"\" -DLIB_VERSION=\""v0.1"\" -DLIB_TV_MODELS=\""D 
 
 all: ${TARGETS} 
     	
-libdvbapi.so: dvbapi.c hook.c C_support.c log.c $(wildcard *.h) $(wildcard ../include/*.h)
+libdvbapi.so: dvbapi.c hook.c C_support.c log.c models/serie_d_mst.c $(wildcard *.h) $(wildcard ../include/*.h)
 	$(CROSS)gcc $(filter %.c %.cpp,$^) ${CFLAGS} -mel -shared -Wl,-soname,$@ -o $@
 
 clean:
