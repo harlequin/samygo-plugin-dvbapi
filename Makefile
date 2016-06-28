@@ -17,7 +17,11 @@ ifeq ($(PLATFORM), H-MST)
 	CFLAGS +=  
 endif
 
-
+ifeq ($(PLATFORM), E)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_e.o
+	CFLAGS +=  
+endif
 
 OBJS = $(APP_OBJ)
 LIB:=libdvbapi-${PLATFORM}-${TAG}.so
