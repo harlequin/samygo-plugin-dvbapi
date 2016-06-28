@@ -17,23 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
- 
 BUILD_DIR=".build"
-GIT_URL="https://github.com/harlequin/samygo-plugin-dvbapi.git"
-
-function clone2build {
-	echo "Building "$1" TARGET"
-	mkdir -p $BUILD_DIR"/"$1
-	(cd $BUILD_DIR"/"$1;\
-	git clone -b $3 --depth 1 $GIT_URL .;\
-	CROSS=$2 make;\
-	mv#.so "../samygo-plugin-dvbapi-"$3".so";\
-	tar -zcvf "../samygo-plugin-dvbapi-"$3".tar.gz" "../samygo-plugin-dvbapi-"$3".so";\
-	rm -rf "../samygo-plugin-dvbapi-"$3".so")
-}
 
 rm -rf $BUILD_DIR
 mkdir -p $BUILD_DIR
 
-clone2build samygo-plugin-dvbapi_D-MST mips-linux-gnu- D-MST-v0.1
-clone2build samygo-plugin-dvbapi_H-T-MST arm-none-linux-gnueabi- H-MST-v0.1
+export CROSS=mips-linux-gnu-
+make PLATFORM=D-MST
+mv *.so $BUILD_DIR
+make clean
+export CROSS=arm-none-linux-gnueabi-
+make PLATFORM=H-MST
+mv *.so $BUILD_DIR
+make clean

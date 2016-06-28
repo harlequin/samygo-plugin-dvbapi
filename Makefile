@@ -3,12 +3,12 @@ LIB_TV_MODEL=
 CFLAGS += -fPIC -O2 -std=gnu99 
 CFLAGS += -ldl -DBUILD_GIT_SHA=\"$(GIT_VERSION)\"
 GIT_VERSION := $(shell git describe --dirty --always --abbrev=4)
-BRANCH := $(shell git symbolic-ref --short -q HEAD)
+TAG := $(shell git describe --tags)
 
 ifeq ($(PLATFORM), D-MST)
 	LIB_TV_MODEL=${PLATFORM}
 	APP_OBJ += models/serie_d_mst.o
-	CFLAGS += -mel -mglibc -march=34kc 
+	CFLAGS += -mglibc -march=34kc -mel 
 endif
 
 ifeq ($(PLATFORM), H-MST)
@@ -20,10 +20,10 @@ endif
 
 
 OBJS = $(APP_OBJ)
-LIB:=libdvbapi-${PLATFORM}-${BRANCH}-${GIT_VERSION}.so
+LIB:=libdvbapi-${PLATFORM}-${TAG}.so
 
 # DEFAULT VERSION INFORMATION
-CFLAGS += -DLIB_NAME=\""dvbapi"\" -DLIB_VERSION=\""${BRANCH}"\" -DLIB_TV_MODELS=\""${LIB_TV_MODEL}"\"  
+CFLAGS += -DLIB_NAME=\""dvbapi"\" -DLIB_VERSION=\""${TAG}"\" -DLIB_TV_MODELS=\""${LIB_TV_MODEL}"\"  
 
 all: libdvbapi.so
 ifeq ($(LIB_TV_MODEL), )
@@ -31,7 +31,7 @@ ifeq ($(LIB_TV_MODEL), )
 endif
 
 libdvbapi.so: $(OBJS)	
-	$(CROSS)gcc $(CFLAGS) $(OBJS) -shared -Wl,-soname,$(LIB) -o $(LIB)
+	$(CROSS)gcc $(CFLAGS) $(OBJS) $(LDFLAGS) -shared -Wl,-soname,$(LIB) -o $(LIB)
 	
 	
 #$(CROSS)gcc $(CFLAGS) $(OBJS) -shared -Wl,-soname,$@ -o $@
