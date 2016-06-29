@@ -23,6 +23,12 @@ ifeq ($(PLATFORM), E)
 	CFLAGS +=  
 endif
 
+ifeq ($(PLATFORM), D)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_d.o
+	CFLAGS +=  
+endif
+
 OBJS = $(APP_OBJ)
 LIB:=libdvbapi-${PLATFORM}-${TAG}.so
 

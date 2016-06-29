@@ -58,16 +58,28 @@ static u32 g_hDesc = 0;
 static u32 g_DscmbId = 0;
 static u32 g_SourceId = 0;
 
+//spITsd_DescramblerSetKey(m_hDesc, u32DescId, EVEN_KEY, pKeyInfo->pKey, pKeyInfo->keyLen)
+//spITsd_DescramblerSetKey(m_hDesc, u32DescId, ODD_KEY, pKeyInfo->pKey, pKeyInfo->keyLen)
+//spITsd_DescramblerSetKey(m_hDesc, pCpInst->u32DescId, eCwType, pKeyInfo->pKey, pKeyInfo->keyLen)
+
+typedef enum {
+	EVEN_KEY = 0x00,
+	ODD_KEY = 0x01
+} eCwType;
+
 typedef union {
 	const void *procs[15];
 	struct	{
+		/*Available in libsdal.o*/
 		const int (*SdTSData_StartMonitor)(u32 dmx_handle, SdTSData_Settings_t *a1);
 		const int (*SdTSData_StopMonitor)(u32 dmx_handle, u32 mon_handle);
 		const int (*spITsd_Open)(signed int a1 ,void *hDesc);
 		const int (*spITsd_DescramblerAllocate)(u32 hDesc, signed int a2, void *u32DscmbId);
 		const int (*spITsd_DescramblerDeallocate)(u32 hDesc, u32 u32DscmbId);
 		const int (*spITsd_DescramblerLinkToDmx)(u32 hDesc, u32 u32DscmbId, u32 dmxHandle);
-		const int (*spITsd_DescramblerSetKey)(u32 hDesc, u32 DscmbId, u32 parity, u8 *data, u8 len);
+
+		const int (*spITsd_DescramblerSetKey)(u32 hDesc, u32 DscmbId, eCwType parity, u8 *data, u8 len);
+
 		void **g_pAppWindow;
 
 		const int (*GetSource) (void *window, int *source, int arg3);

@@ -26,7 +26,16 @@ export CROSS=mips-linux-gnu-
 make PLATFORM=D-MST
 mv *.so $BUILD_DIR
 make clean
+
 export CROSS=arm-none-linux-gnueabi-
 make PLATFORM=H-MST
 mv *.so $BUILD_DIR
 make clean
+
+export CROSS=arm-none-linux-gnueabi-
+make PLATFORM=D
+mv *.so $BUILD_DIR
+make clean
+
+
+(cd $BUILD_DIR; tar -czf libdvbapi-v0.2.tar.gz *; mv *.tar.gz ./..;)
