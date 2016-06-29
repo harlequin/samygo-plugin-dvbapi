@@ -18,9 +18,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 BUILD_DIR=".build"
-
+VERSION=`git describe --tags`
 rm -rf $BUILD_DIR
 mkdir -p $BUILD_DIR
+make clean
 
 export CROSS=mips-linux-gnu-
 make PLATFORM=D-MST
@@ -38,4 +39,4 @@ mv *.so $BUILD_DIR
 make clean
 
 
-(cd $BUILD_DIR; tar -czf libdvbapi-v0.2.tar.gz *; mv *.tar.gz ./..;)
+(cd $BUILD_DIR; tar -czf libdvbapi-$VERSION.tar.gz *; mv *.tar.gz ./..;)
