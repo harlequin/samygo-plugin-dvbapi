@@ -5,28 +5,19 @@ CFLAGS += -ldl -DBUILD_GIT_SHA=\"$(GIT_VERSION)\"
 GIT_VERSION := $(shell git describe --dirty --always --abbrev=4)
 TAG := $(shell git describe --tags)
 
+SUPPORTED_PLATFORMS = $(subst .c,,$(subst ./models/serie_,, $(wildcard ./models/*.c)))
+
+ifeq ($(filter $(PLATFORM),$(SUPPORTED_PLATFORMS)),)
+  $(warning PLATFORM NOT AVAILABLE "$(PLATFORM)")
+  $(warning AVAILABLE PLATFORMS "$(SUPPORTED_PLATFORMS)")
+  $(error )
+endif
+
+APP_OBJ += models/serie_$(PLATFORM).o
+LIB_TV_MODEL=${PLATFORM}
+
 ifeq ($(PLATFORM), D-MST)
-	LIB_TV_MODEL=${PLATFORM}
-	APP_OBJ += models/serie_d_mst.o
 	CFLAGS += -mglibc -march=34kc -mel 
-endif
-
-ifeq ($(PLATFORM), H-MST)
-	LIB_TV_MODEL=${PLATFORM}
-	APP_OBJ += models/serie_h_mst.o
-	CFLAGS +=  
-endif
-
-ifeq ($(PLATFORM), E)
-	LIB_TV_MODEL=${PLATFORM}
-	APP_OBJ += models/serie_e.o
-	CFLAGS +=  
-endif
-
-ifeq ($(PLATFORM), D)
-	LIB_TV_MODEL=${PLATFORM}
-	APP_OBJ += models/serie_d.o
-	CFLAGS +=  
 endif
 
 OBJS = $(APP_OBJ)
@@ -40,13 +31,14 @@ ifeq ($(LIB_TV_MODEL), )
 	$(error No platform selected!)
 endif
 
-libdvbapi.so: $(OBJS)	
+libdvbapi.so: $(OBJS)
 	$(CROSS)gcc $(CFLAGS) $(OBJS) $(LDFLAGS) -shared -Wl,-soname,$(LIB) -o $(LIB)
 	
 	
 #$(CROSS)gcc $(CFLAGS) $(OBJS) -shared -Wl,-soname,$@ -o $@
 
 .c.o:
+	echo $(SUPPORTED_PLATFORMS)
 	$(CROSS)gcc $(CFLAGS) -c -o $@ $<   
    
 clean:

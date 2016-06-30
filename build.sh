@@ -38,5 +38,9 @@ make PLATFORM=D
 mv *.so $BUILD_DIR
 make clean
 
+export CROSS=arm-none-linux-gnueabi-
+make PLATFORM=E
+mv *.so $BUILD_DIR
+make clean
 
 (cd $BUILD_DIR; tar -czf libdvbapi-$VERSION.tar.gz *; mv *.tar.gz ./..;)
