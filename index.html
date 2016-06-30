@@ -50,6 +50,12 @@ html {
 			font-size: 35px;
 		}
 
+.big-text {
+	font-family: "Raleway", "Open Sans", "Droid Sans", Helvetica, sans-serif;
+	font-weight: 400;
+	font-size: 20px;
+}		
+		
 		/* Override B3 .panel adding a subtly transparent background */
 		.panel {
 			background-color: rgba(255, 255, 255, 0.9);
@@ -137,7 +143,9 @@ background: url(img/above-adventure-aerial-air.jpg) no-repeat center center fixe
                     <li class="hidden">
                         <a class="page-scroll" href="#page-top"></a>
                     </li>
-					
+					<li>
+                        <a class="page-scroll" href="#introduction">Introduction</a>
+                    </li>
                     <li>
                         <a class="page-scroll" href="#about">Tutorial</a>
                     </li>
@@ -188,6 +196,29 @@ background: url(img/above-adventure-aerial-air.jpg) no-repeat center center fixe
 	
 	</section>
 	
+		<section id="introduction" class="models-section">
+		<div class="container">
+            <div class="row" style="text-align:left">
+                <div class="col-lg-12" >
+                    <h1>Introduction</h1>
+					<p class="big-text">
+					The plugin allows connect Samsung TV to OScam. It creates a software CAM <br/>
+					and communicates with OSCam over camd.socket (using 'dvbapi' module). <br/>
+					This way it pass decryption requests to OSCam and obtains back keys which<br/>
+					are needed for CSA stream decryption.<br/>
+					<br/>
+					This program is free software; you can redistribute it and/or modify<br/>
+					it under the terms of the GNU General Public License as published by<br/>
+					the Free Software Foundation; either version 3 of the License, or<br/>
+					(at your option) any later version.<br/>
+					</p>
+					<br><br>
+                </div>
+            </div>
+        </div>	
+	</section>
+	
+	
 	<!-- About Section -->
     <section id="about" class="about-section">
         <div class="container">
@@ -208,7 +239,13 @@ boxtype                       = pc
 					</pre>
 					
 					
-					<h2>Init script</h2>
+					<h2>Command line arguments</h2>
+					<ul>
+						<li>OSCAM_SERVER_IP:xxx.xxx.xxx.xxx - OSCAM dvbapi server address</li>
+						<li>OSCAM_SERVER_PORT:xxxxx - OSCAM dvbapi listenport</li>
+					</ul>
+					<h2>Example call format</h2>
+					<p>samyGOso -D -r -l /mtd_rwdata/oscam/libdvbapi.so OSCAM_SERVER_IP:192.168.1.48 OSCAM_SERVER_PORT:20000</p>
 					
 					<h2>Tools</h2>
 					
