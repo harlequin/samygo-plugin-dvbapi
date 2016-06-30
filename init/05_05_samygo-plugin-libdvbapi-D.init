@@ -17,30 +17,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-BUILD_DIR=".build"
-VERSION=`git describe --tags`
-rm -rf $BUILD_DIR
-mkdir -p $BUILD_DIR
-make clean
 
-export CROSS=mips-linux-gnu-
-make PLATFORM=D-MST
-mv *.so $BUILD_DIR
-make clean
+. /dtv/SGO.env
 
-export CROSS=arm-none-linux-gnueabi-
-make PLATFORM=H-MST
-mv *.so $BUILD_DIR
-make clean
+OSCAM_DIR=/mtd_rwdata/oscam
 
-export CROSS=arm-none-linux-gnueabi-
-make PLATFORM=D
-mv *.so $BUILD_DIR
-make clean
+stop_bootloop()
+{
+	for USB in /dtv/usb/sd* ; do
+		echo "checking $USB"
+		[ -e $USB/STOP ] && echo "STOP found. Script exit..." && exit 1
+	done
+}
 
-export CROSS=arm-none-linux-gnueabi-
-make PLATFORM=E
-mv *.so $BUILD_DIR
-make clean
-
-(cd $BUILD_DIR; tar -czf samygo-plugin-dvbapi-$VERSION.tar.gz *; mv *.tar.gz ./..;)
+case $1 in 
+	start)
+	stop_bootloop
+	samyGOso -D -r -l $OSCAM_DIR/libdvbapi*.so
+	;;
+	stop)
+	;;
+	*)
+	echo "Usage: $0 {start|stop}" 1>&2
+	exit 0
+	;;
+esac
