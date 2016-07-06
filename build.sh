@@ -43,4 +43,9 @@ make PLATFORM=E
 mv *.so $BUILD_DIR
 make clean
 
+export CROSS=arm-none-linux-gnueabi-
+make PLATFORM=F
+mv *.so $BUILD_DIR
+make clean
+
 (cd $BUILD_DIR; tar -czf samygo-plugin-dvbapi-$VERSION.tar.gz *; mv *.tar.gz ./..;)
