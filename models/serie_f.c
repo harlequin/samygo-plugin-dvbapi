@@ -43,30 +43,15 @@ static int g_SID = 0;
 static int g_fltDscmb = 0;
 static unsigned int g_dmxHandle = 0;
 static demux_filter_t *g_demux_filter = NULL;
-static SdTSData_Settings_t g_emmParams;
+static SdTSData_Settings2_t g_emmParams;
 
 static u32 g_hDesc = 0;
 static u32 g_DescId = 0;
 
-//typedef enum {
-//	EVEN = 0,
-//	ODD = 1,
-//} KeyType_e;
-//static SdTSData_Settings_t g_dmxParams;
-//static s32 g_dmxMonHandle = -1;
-//static s32 g_dmxTableId = -1;
-//DMX_HANDLE_LIVE;
-//#define DMX_HANDLE_19800000 0x19800000
-//#define DMX_HANDLE_LIVE 	0x19800620
-//#define DMX_HANDLE_PVR  	0x19800621
-//#define DMX_HANDLE_UNKNOWN 	0x19800622
-//#define DMX_HANDLE_PIP  	0x19800623
-
-
 typedef union {
 	const void *procs[18];
 	struct	{
-		const int (*SdTSData_StartMonitor)(u32 dmx_handle, SdTSData_Settings_t *a1, u32 eDataType, u32 SdMainChip_k);
+		const int (*SdTSData_StartMonitor)(u32 dmx_handle, SdTSData_Settings2_t *a1, u32 eDataType, u32 SdMainChip_k);
 		const int (*SdTSData_StopMonitor)(u32 dmx_handle, u32 mon_handle, u32 SdMainChip_k);
 
 		int (*spITsd_Open)(unsigned int tTsdDeviceInst, unsigned int eTsdClassInst, unsigned int *hDesc);
@@ -273,8 +258,21 @@ int dvbapi_start_filter(u8 demux_index, u8 filter_num, struct dmx_sct_filter_par
 		}
 
 		g_emmParams.pid = ntohs(params.pid);
-		memcpy(g_emmParams.filter, params.filter.filter, FILTER_MASK_SIZE);
-		memcpy(g_emmParams.mask, params.filter.mask, FILTER_MASK_SIZE);
+
+		g_emmParams.data_type = 0;
+		g_emmParams.bCRC_check = 0;
+		g_emmParams.filter_type = 1;
+		g_emmParams.filter_data_len = DMX_FILTER_SIZE;
+		g_emmParams.filter = malloc(DMX_FILTER_SIZE);
+		g_emmParams.mask = malloc(DMX_FILTER_SIZE);
+		g_emmParams.mode = malloc(DMX_FILTER_SIZE);
+
+		memset(g_emmParams.filter, 0, DMX_FILTER_SIZE);
+		memset(g_emmParams.mask, 0, DMX_FILTER_SIZE);
+		memset(g_emmParams.mode, 0, DMX_FILTER_SIZE);
+
+		memcpy(g_emmParams.filter, params.filter.filter, DMX_FILTER_SIZE);
+		memcpy(g_emmParams.mask, params.filter.mask, DMX_FILTER_SIZE);
 
 		filter->tableId = params.filter.filter[0];
 		filter->demuxId = demux_index;

@@ -183,6 +183,18 @@ typedef struct  {
   	//u16 res4;
 } SdTSData_Settings_t;
 
+typedef struct
+{
+    s32 pid;
+    u32 data_type;		// 0, 1, 2
+    u32 bCRC_check;	// 0
+    u32 filter_type; 	// 0: table, 1: mask
+    u8* filter;
+	u32 filter_data_len;	// max 16
+	u8* mask;
+	u8* mode;	// 0: normal, 1:invert
+} SdTSData_Settings2_t;
+
 typedef struct {
 	u8 demux_index;
 	u8 filter_number;
