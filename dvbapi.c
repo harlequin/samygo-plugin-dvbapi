@@ -386,7 +386,6 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 	_hooked = dvbapi_install(h);
 
 	/* commandline parameters */
-	oscam_emm_enabled = 0;
 	argc = getArgCArgV(libpath, argv);
 
 	optstr = getOptArg(argv, argc, "OSCAM_SERVER_IP:");
@@ -397,12 +396,6 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 	optstr = getOptArg(argv, argc, "OSCAM_SERVER_PORT:");
 	if ( optstr ) {
 		oscam_server_port = atoi(optstr);
-	}
-
-	optstr = getOptArg(argv, argc, "EMM");
-	if ( optstr ) {
-		oscam_emm_enabled = 1;
-		log("warning: emm handler activated! please be careful\n");
 	}
 
 	if ( !oscam_server_ip || oscam_server_port == 0 ) {

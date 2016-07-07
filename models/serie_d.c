@@ -58,6 +58,8 @@ static u32 g_hDesc = 0;
 static u32 g_DscmbId = 0;
 static u32 g_SourceId = 0;
 
+/*TODO: REWORK */
+
 //spITsd_DescramblerSetKey(m_hDesc, u32DescId, EVEN_KEY, pKeyInfo->pKey, pKeyInfo->keyLen)
 //spITsd_DescramblerSetKey(m_hDesc, u32DescId, ODD_KEY, pKeyInfo->pKey, pKeyInfo->keyLen)
 //spITsd_DescramblerSetKey(m_hDesc, pCpInst->u32DescId, eCwType, pKeyInfo->pKey, pKeyInfo->keyLen)
