@@ -148,10 +148,10 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, u32* data) {
 				buf = malloc(sizeof(pmt_t));
 				buf->sid = sid;
 				buf->lm = PMT_LIST_FIRST | PMT_LIST_LAST;
-				buf->len = be8(((u8*)data[2]) + 0x02) + 0x03 - 0x0A;
+				buf->len = data[2];
 				buf->ptr = malloc(buf->len);
-				memcpy(buf->ptr, ((u8*)data[2]) + 0x0A , buf->len);
-				socket_send_pm_table(buf);
+				memcpy(buf->ptr, (u8*)data[2], buf->len);
+				socket_send_capmt(buf);
 				g_send_PMT_required = 0;
 			}
 

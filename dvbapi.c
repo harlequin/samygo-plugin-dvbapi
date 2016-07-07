@@ -91,29 +91,46 @@ static void socket_send_client_info() {
 	write(sockfd, buff, sizeof(buff));
 }
 
-void socket_send_pm_table(pmt_t *pmt) {
-	if(!socket_connected) {return;}
+void socket_send_capmt(pmt_t *pmt) {
+	int len = 3 + ((pmt->ptr[1] & 0x0F) << 8) + pmt->ptr[2];
 
-	if ( pmt->len == 0){return;}
-	u8 offset = 0x0A;
-	u8 caPMT[pmt->len + offset];
+	if( len > 1024 ) {
+		log("Unable to send pmt, wrong length: %d\n", len);
+		return;
+	}
 
-	u32 mod_len = pmt->len + 4;
+	unsigned char caPMT[1040];
+	//program_info_length (+1 for ca_pmt_cmd_id, +4 for CAPMT_DESC_DEMUX)
+	int program_info_length = ((pmt->ptr[10] & 0x0F) << 8) + pmt->ptr[11] + 4 + 1;
+	int length_field = len - 5;						// 17 - 6 + len - 4 - 12
 
+	//ca_pmt_tag
 	caPMT[0] = 0x9F;
 	caPMT[1] = 0x80;
 	caPMT[2] = 0x32;
-	caPMT[3] = 0x82;
-	caPMT[4] = mod_len >> 0x08;
-	caPMT[5] = mod_len & 0xFF;
-	caPMT[6] = pmt->lm & 0xFF;
-	caPMT[7] = pmt->sid >> 0x08;
-	caPMT[8] = pmt->sid & 0xFF;
-	caPMT[9] = 0;
+	caPMT[3] = 0x82;              					//2 following bytes for size
 
-	memcpy(caPMT + offset, pmt->ptr, pmt->len);
-	//print_hash((u8*)caPMT, pmt->len + offset);
-	write(sockfd, caPMT, pmt->len + offset);
+	caPMT[4] = length_field >> 8;
+	caPMT[5] = length_field & 0xff;
+
+	caPMT[6] = pmt->lm; 							//list management
+	caPMT[7] = pmt->ptr[3];          				//program_number
+	caPMT[8] = pmt->ptr[4];        					//program_number
+	caPMT[9] = 0;               					//version_number, current_next_indicator
+
+	caPMT[10] = program_info_length >> 8;           //reserved+program_info_length
+	caPMT[11] = program_info_length & 0xFF;         //reserved+program_info_length (+1 for ca_pmt_cmd_id, +4 for above CAPMT_DESC_DEMUX)
+
+	caPMT[12] = 0x01;             					//ca_pmt_cmd_id = CAPMT_CMD_OK_DESCRAMBLING
+	//adding own descriptor with demux and adapter_id
+	caPMT[13] = 0x82;           					//CAPMT_DESC_DEMUX
+	caPMT[14] = 0x02;           					//length
+	caPMT[15] = 0x00;           					//demux id
+	caPMT[16] = (char)adapter_index;   				//adapter id
+
+	memcpy(caPMT + 17, pmt->ptr + 12, len - 16);  	//copy pmt data starting at program_info block
+
+	write(sockfd, caPMT, length_field + 6);			// dont send the last 4 bytes (CRC)
 }
 
 /* SOCKET HANDLER */

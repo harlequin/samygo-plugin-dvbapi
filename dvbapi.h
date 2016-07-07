@@ -23,7 +23,7 @@
 
 #include "types.h"
 
-void socket_send_pm_table(pmt_t *pmt);
+void socket_send_capmt(pmt_t *pmt);
 void socket_send_filter_data(u8 demux_id, u8 filter_num, u8 *data, u32 len);
 
 
