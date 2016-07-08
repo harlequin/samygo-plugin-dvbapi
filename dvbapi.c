@@ -47,7 +47,6 @@
 #include "version.h"
 #include "hook.h"
 #include "common.h"
-#include "tv_info.h"
 #include "types.h"
 #include "log.h"
 #include "models.h"
@@ -55,9 +54,7 @@
 /* CONFIGURATION */
 static u8* oscam_server_ip = NULL;
 static u16 oscam_server_port = 0;
-static u8 oscam_emm_enabled;
 
-static u32 tv_model = 0x00;
 static pthread_t x_thread_socket_handler;
 static int _hooked = 0;
 static u8 socket_connected = 0x00; /* will be set to 1 if handshake was done */
@@ -150,7 +147,7 @@ static void *socket_handler(void *ptr){
 		bzero(&dest, sizeof(dest));
 		dest.sin_family = AF_INET;
 		dest.sin_port = htons(oscam_server_port);
-		if ( inet_pton(AF_INET, oscam_server_ip, &dest.sin_addr) <= 0 ) {
+		if ( inet_pton(AF_INET, (const char*) oscam_server_ip, &dest.sin_addr) <= 0 ) {
 		   log("can't set oscam server destination\n");
 		} else {
 			/*---Connect to server---*/

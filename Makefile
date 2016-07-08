@@ -1,6 +1,6 @@
 APP_OBJ = dvbapi.o hook.o C_support.o log.o models.o
 LIB_TV_MODEL= 
-CFLAGS += -fPIC -O2 -std=gnu99 
+CFLAGS += -fPIC -O2 -std=gnu99 -Wall
 CFLAGS += -ldl -DBUILD_GIT_SHA=\"$(GIT_VERSION)\"
 GIT_VERSION := $(shell git describe --dirty --always --abbrev=7)
 TAG := $(shell git describe --tags)

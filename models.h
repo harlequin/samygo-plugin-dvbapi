@@ -20,6 +20,29 @@
 #ifndef MODELS_H_
 #define MODELS_H_
 
+#include "types.h"
+
+typedef enum {
+	TV_MODEL_UNK   = -1,
+	TV_MODEL_C     = 0,
+	TV_MODEL_D     = 1,
+	TV_MODEL_E     = 2,
+	TV_MODEL_F     = 3,
+	TV_MODEL_H     = 4,
+} model_type_e;
+
+typedef enum {
+	TV_TYPE_UNK = -1,
+	TV_TYPE_MST = 1,
+	TV_TYPE_GFS_GFP = 2,
+	TV_TYPE_NT = 3,
+} model_firmware_e;
+
+typedef struct {
+	const char *name;
+	int model;
+} hook_t;
+
 const char *model_type_string(int m);
 const char *model_firmware_string(int t);
 int model_firmware();

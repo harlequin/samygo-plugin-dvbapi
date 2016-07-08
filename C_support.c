@@ -119,7 +119,7 @@ unsigned int* find_func_by_string(void *h, char *fName, char *f_string, int seek
         {
                 //read_mem(pid, &tmp, 1, cur_addr);
 				tmp=*(unsigned long*)cur_addr;
-                if(ldr_addr=(void*)check_is_LDR_RD((unsigned long)cur_addr,tmp) )
+                if( (ldr_addr=(void*)check_is_LDR_RD((unsigned long)cur_addr,tmp)) )
                 {
                    //     read_mem(pid, &p_addr, 1, ldr_addr);
 				   		p_addr=(void*)*ldr_addr;
@@ -157,13 +157,13 @@ unsigned int* find_func_by_string(void *h, char *fName, char *f_string, int seek
 	}
 #include "C_find.h"
 #include <stdio.h>
-#include "tv_info.h"
+#include "models.h"
 
 void *C_find(void *h, const char *fn_name)
 {
     static int model=TV_MODEL_UNK;
 	if(model == TV_MODEL_UNK)
-	    model=getTVModel();
+	    model= model_type();
 	if(model!=TV_MODEL_C)
 		return 0;
 	else

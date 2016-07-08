@@ -227,11 +227,12 @@ int dvbapi_server_info(void) {
 		}
 		api_callbacks.TCChannel_Destroy(channel);
 	}
+	return 0;
 }
 
 int dvbapi_set_descriptor(ca_descr_t ca_descr) {
-	g_fltDscmb =  g_hDesc,g_DescId, ca_descr.parity, api_callbacks.spITsd_DescramblerSetKey(g_hDesc, g_DescId, ca_descr.parity, ca_descr.cw, 8);
-	log("spITsd_DescramblerSetKey(0x%08X, 0x%08X, 0x%02X, ...)=%d\n", g_fltDscmb);
+	g_fltDscmb = api_callbacks.spITsd_DescramblerSetKey(g_hDesc, g_DescId, ca_descr.parity, ca_descr.cw, 8);
+	log("spITsd_DescramblerSetKey(0x%08X, 0x%08X, 0x%02X, ...)=%d\n",g_hDesc,g_DescId, ca_descr.parity, g_fltDscmb);
 	return g_fltDscmb;
 }
 
