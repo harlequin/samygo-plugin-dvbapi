@@ -311,6 +311,16 @@ int dvbapi_set_descriptor(ca_descr_t ca_descr) {
 	return g_fltDscmb;
 }
 
+void dvbapi_dmx_stop(u8 demux_index, u8 filter_num, u16 pid) {
+	demux_filter_t *filter;
+	log("DVBAPI_DMX_STOP request, pid=%X, demux_idx=%d, filter_num=%d\n", pid, demux_index, filter_num);
+	LL_SEARCH_SCALAR(g_demux_filter, filter, filterId, filter_num);
+	if(filter) {
+		u32 res = api_callbacks.SdTSData_StopMonitor( g_dmxHandle, filter->monHandle & 0x7FFFFFFF );
+		log("Monitor stopped, idx=0x%02X, flt=0x%02X, dmxHandle=0x%08X, monHandle=0x%08X, ret=0x%08X\n", demux_index, filter_num, g_dmxHandle, filter->monHandle & 0x7FFFFFFF, res);
+	}
+}
+
 int dvbapi_start_filter(u8 demux_index, u8 filter_num, struct dmx_sct_filter_params params){
 	/* This pid zero still occurs because the pmt is not send correctly */
 	if ( ntohs(params.pid) != 0x00 ) {

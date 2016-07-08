@@ -255,13 +255,11 @@ static void *socket_handler(void *ptr){
 					 }
 
 					 else if (*request == DVBAPI_DMX_STOP) {
-						 log("<< DVBAPI_DMX_STOP request ...\n");
-//						 stopMonitors();
-//						 unsigned char demux_index = buf[4];
-//						 unsigned char filter_num = buf[5];
-//						 u16 *pid_ptr = (u16 *) &buf[6];
-//						 u16 pid = ntohs(*pid_ptr);
-//						 log("<< DMX_STOP request, adapter_index=%d, pid=%X, demux_idx=%d, filter_num=%d\n", __FUNCTION__, adapter_index, pid, demux_index, filter_num);
+						 u8 demux_index = buf[4];
+						 u8 filter_num = buf[5];
+						 u16 *pid_ptr = (u16 *) &buf[6];
+						 u16 pid = ntohs(*pid_ptr);
+						 dvbapi_dmx_stop(demux_index, filter_num, pid);
 					 }
 
 

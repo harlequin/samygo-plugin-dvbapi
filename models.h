@@ -26,5 +26,6 @@ int dvbapi_server_info(void);
 int dvbapi_set_descriptor(ca_descr_t ca_descr);
 int dvbapi_start_filter(u8 demux_index, u8 filter_num, struct dmx_sct_filter_params params);
 
+void dvbapi_dmx_stop(u8 demux_index, u8 filter_num, u16 pid);
 
 #endif /* MODELS_H_ */
