@@ -20,6 +20,12 @@
 #ifndef MODELS_H_
 #define MODELS_H_
 
+const char *model_type_string(int m);
+const char *model_firmware_string(int t);
+int model_firmware();
+int model_type();
+
+
 int dvbapi_install(void *h);
 int dvbapi_server_info(void);
 //int dvbapi_stop_filter(stop_filter_t stop_filter);

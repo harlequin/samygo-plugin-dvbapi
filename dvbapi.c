@@ -417,12 +417,10 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 		log("error: oscam network mode needs oscam server ip and oscam server port argument\n");
 		return;
 	}
-
-
-	tv_model = getTVModel();
-	log("TV Model: %s\n", tvModelToStr(tv_model));
 	dlclose(h);
-    log("Hooking the system done ...\n");
+
+	log ("Samsung %s Series [%s]\n", model_type_string(model_type()), model_firmware_string(model_firmware()));
+    log ("Hooking the system done ...\n");
 
     if(pthread_create(&x_thread_socket_handler, NULL, socket_handler, NULL)) {
     	log("error creating socket handler thread\n");
