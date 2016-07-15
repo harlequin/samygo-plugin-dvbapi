@@ -128,6 +128,23 @@ void socket_send_capmt(pmt_t *pmt) {
 	memcpy(caPMT + 17, pmt->ptr + 12, len - 16);  	//copy pmt data starting at program_info block
 
 	write(sockfd, caPMT, length_field + 6);			// dont send the last 4 bytes (CRC)
+	log("capmt send to oscam\n");
+}
+
+static char *get_ip(char *host) {
+  struct hostent *hent;
+  int iplen = 15; //XXX.XXX.XXX.XXX
+  char *ip = (char *)malloc(iplen+1);
+  memset(ip, 0, iplen+1);
+  if((hent = gethostbyname(host)) == NULL) {
+    log("Can't get IP\n");
+    exit(1);
+  }
+  if(inet_ntop(AF_INET, (void *)hent->h_addr_list[0], ip, iplen) == NULL) {
+    log("Can't resolve host");
+    exit(1);
+  }
+  return ip;
 }
 
 /* SOCKET HANDLER */
@@ -137,7 +154,7 @@ static void *socket_handler(void *ptr){
 	#define MAXBUF 512
 
     struct sockaddr_in dest;
-    char buffer[MAXBUF];
+    //char buffer[MAXBUF];
 
     /*---Open socket for streaming---*/
     if ( (sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
@@ -147,6 +164,10 @@ static void *socket_handler(void *ptr){
 		bzero(&dest, sizeof(dest));
 		dest.sin_family = AF_INET;
 		dest.sin_port = htons(oscam_server_port);
+
+		oscam_server_ip = get_ip(oscam_server_ip);
+		log("Connecting to %s\n", oscam_server_ip);
+
 		if ( inet_pton(AF_INET, (const char*) oscam_server_ip, &dest.sin_addr) <= 0 ) {
 		   log("can't set oscam server destination\n");
 		} else {
@@ -209,7 +230,7 @@ static void *socket_handler(void *ptr){
 				    }else if (*request == DVBAPI_CA_SET_PID) {
 				    	/*TODO: Shall we use this?*/
 					    c_read = recv(sockfd, buf+4, sizeof(ca_pid_t), MSG_DONTWAIT);
-					    continue;
+					    //continue;
 					}else if (*request == DMX_SET_FILTER) {
 					    c_read = recv(sockfd, buf+4, sizeof(struct dmx_sct_filter_params), MSG_DONTWAIT);
 					} else if (*request == DVBAPI_SERVER_INFO) {
@@ -249,6 +270,14 @@ static void *socket_handler(void *ptr){
 						 ca_descr.parity = ntohl(ca_descr.parity);
 						 log("Got CA_SET_DESCR request, index=0x%04x parity=0x%04x\n", ca_descr.index, ca_descr.parity);
 						 dvbapi_set_descriptor(ca_descr);
+					 }
+
+					 else if (*request == DVBAPI_CA_SET_PID) {
+						 ca_pid_t ca_pid;
+						 memcpy(&ca_pid, &buf[4], sizeof(ca_pid));
+						 ca_pid.index = ntohl(ca_pid.index);
+						 ca_pid.pid = ntohl(ca_pid.pid);
+						 log("DVBAPI_CA_SET_PID index:0x%08x pid:0x%08x\n", ca_pid.index, ca_pid.pid);
 					 }
 
 					 else if (*request == DVBAPI_DMX_STOP) {
@@ -375,9 +404,7 @@ char* getOptArg(char **argv, int argc, char *option) {
 
 EXTERN_C void lib_init(void *_h, const char *libpath) {
 	u32 argc;
-	char *argv[100],*optstr;
-
-    unsigned long *cur_addr,ret,i,k,D, LOG_ALL=0;
+	u8 *argv[100],*optstr;
 
     if(_hooked) {
         log("Injecting once is enough!\n");
@@ -396,6 +423,10 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 
 	patch_adbg_CheckSystem(h);
 	_hooked = dvbapi_install(h);
+	if ( _hooked == 0) {
+		log("error in hooking firmware, abort\n");
+		return;
+	}
 
 	/* commandline parameters */
 	argc = getArgCArgV(libpath, argv);
@@ -416,7 +447,7 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 	}
 	dlclose(h);
 
-	log ("Samsung %s Series [%s]\n", model_type_string(model_type()), model_firmware_string(model_firmware()));
+	//log ("Samsung %s Series [%s]\n", model_type_string(model_type()), model_firmware_string(model_firmware()));
     log ("Hooking the system done ...\n");
 
     if(pthread_create(&x_thread_socket_handler, NULL, socket_handler, NULL)) {
