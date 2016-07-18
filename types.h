@@ -72,12 +72,19 @@ typedef struct PMT {
 	struct PMT *next;
 } pmt_t;
 
+typedef struct DEMUX_FILTER {
+	u16 tableId;
+	s32 monHandle;
+	u8 demuxId;
+	u8 filterId;
+	struct DEMUX_FILTER *next;
+} demux_filter_t;
+
 #if !defined(DMX_FILTER_SIZE)
 #define DMX_FILTER_SIZE 16
 #endif
 
- typedef struct dmx_filter
-{
+typedef struct dmx_filter {
 	u8  filter[DMX_FILTER_SIZE];
 	u8  mask[DMX_FILTER_SIZE];
 	u8  mode[DMX_FILTER_SIZE];
@@ -170,17 +177,14 @@ typedef struct ca_descr_mode {
 } ca_descr_mode_t;
 
 typedef struct  {
-  	/* 0 */ u16 pid;
-  	//		u16 res_pid;
-  	/* 1 */ u32 res;
-  	/* 2 */ u32 res2;
-  	/* 3 */ u8 filter[16];
-  	//u16 res3;
-  	///* 4 */ u32 res3;
-  	///* 5 */ u32 res4;
-  	///* 6 */ u32 res5;
-  	/* 7 */ u8 mask[16];
-  	//u16 res4;
+	u16 pid;
+  	u32 res;
+  	u32 res2;
+  	//u32 res3;
+  	u8 filter[DMX_FILTER_SIZE];
+  	u32 filter_len;
+  	u8 mask[DMX_FILTER_SIZE];
+  	u8 mode[DMX_FILTER_SIZE];
 } SdTSData_Settings_t;
 
 typedef struct
@@ -200,5 +204,12 @@ typedef struct {
 	u8 filter_number;
 	u16 pid;
 } stop_filter_t;
+
+typedef struct {
+	u32 hmon;
+	u32 pid;
+	u8 *ptr;
+	u32 len;
+} SICallBackSettings_t;
 
 #endif

@@ -62,6 +62,7 @@ int dyn_sym_tab_init(void *h, dyn_fn_t *fn_tab, uint32_t cnt) {
 }
 
 int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt) {
+	int res = 0;
     samyGO_CTX_t *ctx;
     ctx=paramCTX;
 	void *fn;
@@ -79,10 +80,11 @@ int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt) {
             log("dlsym '%s' failed.\n", ctx->procs[i]);
         } else {
             log("%s [%p].\n",  ctx->procs[i], fn);
+            res++;
         }
         ctx->procs[i] = fn;
     }
-    return 0;
+    return res;
 }
 
 void hijack_start(

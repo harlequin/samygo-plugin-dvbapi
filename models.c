@@ -21,10 +21,13 @@
 #include <dlfcn.h>
 #include <string.h>
 
+#include "utlist.h"
+#include "hook.h"
 #include "common.h"
 #include "types.h"
 #include "log.h"
 #include "models.h"
+#include "dvbapi.h"
 
 
 
@@ -133,7 +136,3 @@ int model_type() {
 
 	return model;
 }
-
-
-
-
