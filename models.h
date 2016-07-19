@@ -43,6 +43,11 @@ typedef struct {
 	int model;
 } hook_t;
 
+
+// Common api methods
+void model_demuxbase_demux(SICallBackSettings_t *data, u32 service_id, demux_filter_t *active_filter);
+
+// TV model Identification routines
 const char *model_type_string(int m);
 const char *model_firmware_string(int t);
 int model_firmware();

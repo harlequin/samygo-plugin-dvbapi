@@ -355,6 +355,7 @@ static void capmt_connection_handler(){
 			unsigned char demux_index = buf[4];
 			unsigned char filter_num = buf[5];
 			memcpy(&params, &buf[6], sizeof(struct dmx_sct_filter_params));
+			params.pid = ntohs(params.pid);
 			log("Got DMX_SET_FILTER request, pid=0x%02x, byte1=0x%02x, mask1=0x%02x\n", ntohs(params.pid), params.filter.filter[0], params.filter.mask[0] );
 			dvbapi_start_filter (demux_index, filter_num, params);
 		} else if(*request == DVBAPI_SERVER_INFO) {
