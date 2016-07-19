@@ -23,6 +23,12 @@ ifeq ($(PLATFORM), E)
 	CFLAGS +=  
 endif
 
+ifeq ($(PLATFORM), E-MST)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_e_mst.o
+	CFLAGS +=  
+endif
+
 ifeq ($(PLATFORM), D)
 	LIB_TV_MODEL=${PLATFORM}
 	APP_OBJ += models/serie_d.o
@@ -38,6 +44,13 @@ endif
 ifeq ($(PLATFORM), F-MST)
 	LIB_TV_MODEL=${PLATFORM}
 	APP_OBJ += models/serie_f.o
+	CFLAGS +=  
+endif
+
+
+ifeq ($(PLATFORM), H-TNT)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_h_TNT.o
 	CFLAGS +=  
 endif
 

@@ -193,10 +193,10 @@ typedef struct
     u32 data_type;		// 0, 1, 2
     u32 bCRC_check;	// 0
     u32 filter_type; 	// 0: table, 1: mask
-    u8* filter;
-	u32 filter_data_len;	// max 16
-	u8* mask;
-	u8* mode;	// 0: normal, 1:invert
+    u8 filter[DMX_FILTER_SIZE];
+	u32 filter_len;	// max 16
+	u8 mask[DMX_FILTER_SIZE];
+	u8 mode[DMX_FILTER_SIZE];	// 0: normal, 1:invert
 } SdTSData_Settings2_t;
 
 typedef struct {

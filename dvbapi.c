@@ -83,6 +83,13 @@ void socket_send_filter_data(u8 demux_id, u8 filter_num, u8 *data, u32 len) {
 
 }
 
+void socket_send_stop(char dmx) {
+	unsigned char cmd[8] = {0x9F, 0x80, 0x3f, 0x04, 0x83, 0x02, 0x00};
+	cmd[7] = dmx;
+	write(sockfd, cmd, 8);
+	log("Stop descrambling sent for dmx %d\n", dmx);
+}
+
 static void socket_send_client_info() {
 	int len = sizeof(INFO_VERSION) - 1;                     //ignoring null termination
 	unsigned char buff[7 + len];
