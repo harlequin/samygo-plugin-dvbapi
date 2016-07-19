@@ -44,7 +44,7 @@ endif
 
 ifeq ($(PLATFORM), F-MST)
 	LIB_TV_MODEL=${PLATFORM}
-	APP_OBJ += models/serie_f.o
+	APP_OBJ += models/serie_f_mst.o
 	CFLAGS +=  
 endif
 
