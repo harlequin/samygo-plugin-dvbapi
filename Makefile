@@ -5,10 +5,11 @@ CFLAGS += -ldl -DBUILD_GIT_SHA=\"$(GIT_VERSION)\"
 GIT_VERSION := $(shell git describe --dirty --always --abbrev=7)
 TAG := $(shell git describe --tags)
 
+
 ifeq ($(PLATFORM), D-MST)
 	LIB_TV_MODEL=${PLATFORM}
 	APP_OBJ += models/serie_d_mst.o
-	CFLAGS += -mglibc -march=34kc -mel 
+	CFLAGS += -mglibc -march=34kc -mel -DSPECIAL_HOOK  
 endif
 
 ifeq ($(PLATFORM), H-MST)
