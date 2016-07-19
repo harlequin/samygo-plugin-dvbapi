@@ -36,7 +36,6 @@
 #define DMX_HANDLE_UNKNOWN 	0x19800622
 #define DMX_HANDLE_PIP  	0x19800623
 
-static pmt_t *g_pmt = NULL;
 static u32 g_send_PMT_required = 0;
 static demux_filter_t *g_demux_filter = NULL;
 static int g_SID = 0;
@@ -159,54 +158,7 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, SICallBackSettings_t* data) {
 	//asm("move %0, $ra\n" : "=r" (ra));
 
 	_HOOK_DISPATCH(DemuxBase_m_Demux_SICallback, data);
-
-	pmt_t *buf;
-	pmt_t *tmp;
-	u16 sid = 0x00;
-
-	if ( data->len > 0 && data->len <= 1024) {
-
-		if ( be8(data->ptr) == 0x02 ) {
-
-			sid = be16( (data->ptr) + 0x03 );
-
-			if ( sid == 0x00 ) {
-				return (int)h_ret;
-			}
-
-			//on new sid or if content not the same
-			LL_SEARCH_SCALAR(g_pmt, buf, sid, sid);
-			if ( !buf || memcmp( data->ptr, buf->ptr, data->len ) != 0) {
-				//no sid in list found
-				buf = malloc(sizeof(pmt_t));
-				buf->sid = sid;
-				buf->lm = PMT_LIST_MORE;
-				buf->len = data->len;
-				buf->ptr = malloc(buf->len);
-				memcpy(buf->ptr, data->ptr, buf->len);
-				LL_APPEND(g_pmt, buf);
-
-				//u8 lm = PMT_LIST_FIRST;
-				LL_FOREACH_SAFE(g_pmt, buf, tmp) {
-					if ( buf->sid == g_SID ) {
-						if ( g_pmt == buf ){ buf->lm |= PMT_LIST_FIRST; }
-						if ( buf->next == NULL ) { buf->lm |= PMT_LIST_LAST; }
-						socket_send_capmt(buf);
-						buf->lm = PMT_LIST_UPDATE;
-					}
-				}
-				g_send_PMT_required = 0;
-			}
-		} else {
-			demux_filter_t *filter;
-			LL_SEARCH_SCALAR(g_demux_filter, filter, monHandle, data->hmon);
-			if ( filter ) {
-				log(">> EMM%02x ... hmon:0x%08x send data\n", be8(data->ptr), data->hmon);
-				socket_send_filter_data( filter->demuxId, filter->filterId, data->ptr , data->len );
-			}
-		}
-	}
-
+	model_demuxbase_demux(data, g_SID, g_demux_filter);
 	return (int)h_ret;
 }
 
@@ -358,19 +310,25 @@ int dvbapi_start_filter(u8 demux_index, u8 filter_num, struct dmx_sct_filter_par
 			filter->tableId = -1;
 		}
 
-		g_emmParams.pid = ntohs(params.pid);
+		g_emmParams.pid = params.pid;
+
 		g_emmParams.data_type = 0;
 		g_emmParams.bCRC_check = 0;
 		g_emmParams.filter_type = 1;
 		g_emmParams.filter_len = DMX_FILTER_SIZE;
-		g_emmParams.filter[0] = params.filter.filter[0] ;//buff[8];
-		g_emmParams.mask[0] = params.filter.mask[0];//buff[24];
-		memcpy(&g_emmParams.filter[3], &params.filter.filter[1], DMX_FILTER_SIZE - 3);
-		memcpy(&g_emmParams.mask[3], &params.filter.mask[1], DMX_FILTER_SIZE - 3);
+
+		memset(g_emmParams.filter, 0, DMX_FILTER_SIZE);
+		memset(g_emmParams.mask, 0, DMX_FILTER_SIZE);
+		memset(g_emmParams.mode, 0, DMX_FILTER_SIZE);
+
+		memcpy(g_emmParams.filter, params.filter.filter, DMX_FILTER_SIZE);
+		memcpy(g_emmParams.mask, params.filter.mask, DMX_FILTER_SIZE);
 
 		filter->tableId = params.filter.filter[0];
 		filter->demuxId = demux_index;
 		filter->filterId = filter_num;
+
+
 		filter->monHandle = api_callbacks.SdTSData_StartMonitor(DMX_HANDLE_LIVE, &g_emmParams,0);
 		log("EMM%02x monitor started, dmxHandle=0x%08x, monHandle=0x%08x\n",filter->tableId, g_dmxHandle, filter->monHandle);
 	}

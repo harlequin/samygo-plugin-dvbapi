@@ -28,22 +28,12 @@
 #include "../log.h"
 #include "../version.h"
 
-#define FILTER_MASK_SIZE 16
-
-typedef struct DEMUX_FILTER {
-	u16 tableId;
-	s32 monHandle;
-	u8 demuxId;
-	u8 filterId;
-	struct DEMUX_FILTER *next;
-} demux_filter_t;
-
 static int g_send_PMT_required = 0;
 static int g_SID = 0;
 static int g_fltDscmb = 0;
 static unsigned int g_dmxHandle = 0;
 static demux_filter_t *g_demux_filter = NULL;
-static SdTSData_Settings_t g_emmParams;
+static SdTSData_Settings2_t g_emmParams;
 
 static u32 g_hDesc = 0;
 static u32 g_DescId = 0;
@@ -90,7 +80,7 @@ typedef union {
 
 } api_callbacks_t;
 
-api_callbacks_t api_callbacks = {
+api_callbacks_t api_callbacks = {{
 		(const void*)"_Z21SdTSData_StartMonitorjP19SdTSData_Settings_tj",
 		(const void*)"_Z20SdTSData_StopMonitorjj",
 
@@ -109,7 +99,7 @@ api_callbacks_t api_callbacks = {
 		(const void*)"_ZNK9TCChannel13ProgramNumberEv",
 		(const void*)"_ZNK9TCChannel16SizeOfDescriptorEv",
 		(const void*)"_ZNK9TCChannel10DescriptorEii",
-};
+}};
 
 _HOOK_IMPL(int,SdAVDec_DemuxStop, unsigned int dmxHandle, int eDemuxOut) {
 	log("SdAVDec_DemuxStop, dmxHandle=0x%08X, eDemuxOut=0x%08X\n", dmxHandle, eDemuxOut);
@@ -127,44 +117,9 @@ _HOOK_IMPL(int,SdAVDec_DemuxStart, unsigned int dmxHandle, int eDemuxOut) {
 	return (int)h_ret;
 }
 
-_HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, u32* data) {
+_HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, SICallBackSettings_t* data) {
 	_HOOK_DISPATCH(DemuxBase_m_Demux_SICallback, data);
-
-	pmt_t *buf;
-
-	u16 sid = 0x00;
-
-	if ( data[3] > 0 ) {
-
-		if ( be8((u8 *)data[2]) == 0x02 ) {
-
-			sid = be16( ((u8*)data[2]) + 0x03 );
-
-			if ( sid == 0x00 ) {
-				return (int)h_ret;
-			}
-
-			if ( sid == g_SID && g_send_PMT_required == 1 ) {
-				buf = malloc(sizeof(pmt_t));
-				buf->sid = sid;
-				buf->lm = PMT_LIST_FIRST | PMT_LIST_LAST;
-				buf->len = data[2];
-				buf->ptr = malloc(buf->len);
-				memcpy(buf->ptr, (u8*)data[2], buf->len);
-				socket_send_capmt(buf);
-				g_send_PMT_required = 0;
-			}
-
-		} else {
-			demux_filter_t *filter;
-			LL_SEARCH_SCALAR(g_demux_filter, filter, monHandle, data[0]);
-			if ( filter ) {
-				log(">> EMM%02x ... hmon:0x%08x send data\n", be8((u8 *)data[2]), data[0]);
-				socket_send_filter_data( filter->demuxId, filter->filterId, ((u8*)data[2]) , data[3] );
-			}
-		}
-	}
-
+	model_demuxbase_demux(data, g_SID, g_demux_filter);
 	return (int)h_ret;
 }
 
@@ -244,11 +199,12 @@ int dvbapi_server_info(void) {
 		}
 		api_callbacks.TCChannel_Destroy(channel);
 	}
+	return 0;
 }
 
 int dvbapi_set_descriptor(ca_descr_t ca_descr) {
-	g_fltDscmb =  g_hDesc,g_DescId, ca_descr.parity, api_callbacks.spITsd_DescramblerSetKey(g_hDesc, g_DescId, ca_descr.parity, ca_descr.cw, 8);
-	log("spITsd_DescramblerSetKey(0x%08X, 0x%08X, 0x%02X, ...)=%d\n", g_fltDscmb);
+	g_fltDscmb = api_callbacks.spITsd_DescramblerSetKey(g_hDesc, g_DescId, ca_descr.parity, ca_descr.cw, 8);
+	log("spITsd_DescramblerSetKey(0x%08X, 0x%08X, 0x%02X, ...)=%d\n",g_hDesc,g_DescId, ca_descr.parity, g_fltDscmb);
 	return g_fltDscmb;
 }
 
@@ -274,15 +230,28 @@ int dvbapi_start_filter(u8 demux_index, u8 filter_num, struct dmx_sct_filter_par
 			filter->tableId = -1;
 		}
 
-		g_emmParams.pid = ntohs(params.pid);
-		memcpy(g_emmParams.filter, params.filter.filter, FILTER_MASK_SIZE);
-		memcpy(g_emmParams.mask, params.filter.mask, FILTER_MASK_SIZE);
+		g_emmParams.pid = params.pid;
+
+		g_emmParams.data_type = 0;
+		g_emmParams.bCRC_check = 0;
+		g_emmParams.filter_type = 1;
+		g_emmParams.filter_len = DMX_FILTER_SIZE;
+
+		memset(g_emmParams.filter, 0, DMX_FILTER_SIZE);
+		memset(g_emmParams.mask, 0, DMX_FILTER_SIZE);
+		memset(g_emmParams.mode, 0, DMX_FILTER_SIZE);
+
+		memcpy(g_emmParams.filter, params.filter.filter, DMX_FILTER_SIZE);
+		memcpy(g_emmParams.mask, params.filter.mask, DMX_FILTER_SIZE);
 
 		filter->tableId = params.filter.filter[0];
 		filter->demuxId = demux_index;
 		filter->filterId = filter_num;
+
 		filter->monHandle = api_callbacks.SdTSData_StartMonitor(g_dmxHandle, &g_emmParams,0 );
 		log("EMM%02x monitor started, dmxHandle=0x%08x, monHandle=0x%08x\n",filter->tableId, g_dmxHandle, filter->monHandle);
 	}
 	return 0;
 }
+
+void dvbapi_dmx_stop(u8 demux_index, u8 filter_num, u16 pid) {}

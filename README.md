@@ -14,3 +14,13 @@ Based on:
 
 ### Example call format
 samyGOso -D -r -l /mtd_rwdata/oscam/libdvbapi.so OSCAM_SERVER_IP:192.168.1.48 OSCAM_SERVER_PORT:20000 EMM
+
+### Models
+[Build] D T-MST
+[Build] E NON MST
+[Build] E T-MST
+[Build] F NON MST
+[Build] F T-MST
+[Build] H T-MST
+[] H T-GFx
+[] H T-NT

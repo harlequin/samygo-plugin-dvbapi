@@ -21,6 +21,7 @@
 . /dtv/SGO.env
 
 OSCAM_DIR=$SYSROOT/opt/privateer/usr/bin/oscam/
+BUILD=oscam-svn11225-samsungtv-webif
 
 stop_bootloop()
 {
@@ -33,12 +34,17 @@ stop_bootloop()
 case $1 in 
 	start)
 	stop_bootloop
-	samyGOso -D -r -l $OSCAM_DIR/libdvbapi*.so
+	samyGOso -T -B -r -l $OSCAM_DIR/libdvbapi*.so
+	sleep 1	
+	$OSCAM_DIR/$BUILD -c $OSCAM_DIR -w 0
 	;;
 	stop)
 	;;
+	status)
+	[ -f /dtv/dvbapi*.log ] && cat /dtv/dvbapi*.log || echo "Not started"
+	;;
 	*)
-	echo "Usage: $0 {start|stop}" 1>&2
+	echo "Usage: $0 {start|stop|status}" 1>&2
 	exit 0
 	;;
 esac
