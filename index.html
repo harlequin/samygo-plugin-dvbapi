@@ -6,11 +6,13 @@
 	<!-- Bootstrap -->
 	 <!-- Bootstrap Core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
-	<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet" />
+	<script   src="https://code.jquery.com/jquery-2.2.4.min.js"   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="   crossorigin="anonymous"></script>
+	<script src="./js/bootstrap.min.js"></script>
+	
+	<!--<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet" />-->
 
 	<link href='http://fonts.googleapis.com/css?family=Abel|Open+Sans:400,600' rel='stylesheet'>
-	<link rel="stylesheet" type="text/css" media="all" href="https://fonts.googleapis.com/css?family=Raleway:100,100italic|Open+Sans:300,400,600,300italic,400italic|Droid+Sans|Roboto+Mono&subset=latin,greek,vietnamese,greek-ext,latin-ext,cyrillic,cyrillic-ext">
-
+	<link rel="stylesheet" type="text/css" media="all" href="https://fonts.googleapis.com/css?family=Raleway:100,100italic|Open+Sans:300,400,600,300italic,400italic|Droid+Sans|Roboto+Mono&subset=latin,greek,vietnamese,greek-ext,latin-ext,cyrillic,cyrillic-ext">	
 	<style>
 
 /* http://css-tricks.com/perfect-full-page-background-image/ */
@@ -50,12 +52,6 @@ html {
 			font-size: 35px;
 		}
 
-.big-text {
-	font-family: "Raleway", "Open Sans", "Droid Sans", Helvetica, sans-serif;
-	font-weight: 400;
-	font-size: 20px;
-}		
-		
 		/* Override B3 .panel adding a subtly transparent background */
 		.panel {
 			background-color: rgba(255, 255, 255, 0.9);
@@ -75,7 +71,7 @@ background: url(img/above-adventure-aerial-air.jpg) no-repeat center center fixe
 }
 
 .about-section {
-    height: 100%;
+    
     padding-top: 50px;    
     background: #341C41 ;
 }
@@ -118,6 +114,25 @@ background: url(img/above-adventure-aerial-air.jpg) no-repeat center center fixe
     background-image: -webkit-linear-gradient(270deg,rgba(0,0,0,0.00) 0%,rgba(0,0,0,0.00) 100%);
     background-image: linear-gradient(180deg,rgba(0,0,0,0.00) 0%,rgba(0,0,0,0.00) 100%);
 }
+
+.bs-callout {
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #eee;
+    border-left-width: 5px;
+    border-radius: 3px;
+}
+
+.bs-callout-info {
+    border-left-color: #1b809e;
+}
+
+.img-center {
+	
+	display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
 	</style>
 </head>
 <body>
@@ -143,15 +158,9 @@ background: url(img/above-adventure-aerial-air.jpg) no-repeat center center fixe
                     <li class="hidden">
                         <a class="page-scroll" href="#page-top"></a>
                     </li>
-					<li>
-                        <a class="page-scroll" href="#introduction">Introduction</a>
-                    </li>
-                    <li>
-                        <a class="page-scroll" href="#about">Tutorial</a>
-                    </li>
-                    <li>
-                        <a class="page-scroll" href="#models">Supported models</a>
-                    </li>	
+					<li><a class="page-scroll" href="#models">Supported models</a></li>	
+                    <li><a class="page-scroll" href="#about">Tutorial</a></li>
+                    <li><a class="page-scroll" href="#developers">Developers</a></li>
 					<li>
                         <a class="page-scroll" href="#footer">About</a>
                     </li>	
@@ -165,8 +174,39 @@ background: url(img/above-adventure-aerial-air.jpg) no-repeat center center fixe
     </nav>
 
 
+	<!-- Modal -->
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+		<form target="_blank" action="https://bitcoinpay.com/sci/invoice/generate/" method="post">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel" style="color:black">Support the development</h4>
+				</div>
+				<div class="modal-body" style="color:black">
+					To support the development and to donor the work you can buy me a <i>free beer</i> ;)
+					<br/><br/>
+					<input type="currency" class="form-control" id="amount" name="amount" placeholder="10"> Euro.<br/><br/>
+					
+					<br>
+					<small>bitcoinpay.com will be used for donor</small>
+					<input name="request_str" value="YePRZ5UOutyZNBjDTIx0BHl0OgT8HWZ1WjXdr8zz1av1b60FDxmrf7PdFywEqm3ERCDfW-p6LjXm786R3k7YW3QETHvj631ZI07m8oLa-Ju815r_3j3UV9CPWHnJziQ6IVNfEi_Xqquhp0e0dQEUhOGFwk-6dN7i2CKK189mlJSx2RHTvrnirYALbXzeQ_Jl0s9V9fRtJ0r53ZpHmdLvVsk8t1kzhdBE1u4U52ozLQAtaIKszZlJXRVpSsO6GI0bLWEeNtyq4veGxqJMvxM74eGOvRNZwnj25sy_6us=" type="hidden">					
+					<input name="currency" value="EUR" type="hidden">
+					<input name="memo" value="open liboscam" type="hidden">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="submit" class="btn btn-primary">Donate</button>
+				</div>
+			</div>
+		</div>
+		</form>
+	</div>
 
-<!-- Intro Section -->
+
+
+
+	<!-- Intro Section -->
     <section id="intro" class="intro-section">
 
 	<div class="container">
@@ -174,50 +214,61 @@ background: url(img/above-adventure-aerial-air.jpg) no-repeat center center fixe
 			<h1 class="margin-base-vertical" style="font-size: 54px;">free and open dvbapi for samygo</h1>				
 		</div>			
 		<div class="row">			
-			<div class="col-md-3"></div>
-			<div class="col-md-3"  style="text-align:center">
-				<a href="https://github.com/harlequin/samygo-plugin-dvbapi/releases" class="btn btn-primary btn-lg" style="background-color:#3a324c" role="button">Download<br/><small>samygo-plugins-dvbapi</small></a>
+			<div class="col-md-3">				
 			</div>
 			<div class="col-md-3"  style="text-align:center">
-				<form target="_blank" action="https://bitcoinpay.com/sci/invoice/generate/" method="post">
-					<input name="request_str" value="YePRZ5UOutyZNBjDTIx0BHl0OgT8HWZ1WjXdr8zz1av1b60FDxmrf7PdFywEqm3ERCDfW-p6LjXm786R3k7YW3QETHvj631ZI07m8oLa-Ju815r_3j3UV9CPWHnJziQ6IVNfEi_Xqquhp0e0dQEUhOGFwk-6dN7i2CKK189mlJSx2RHTvrnirYALbXzeQ_Jl0s9V9fRtJ0r53ZpHmdLvVsk8t1kzhdBE1u4U52ozLQAtaIKszZlJXRVpSsO6GI0bLWEeNtyq4veGxqJMvxM74eGOvRNZwnj25sy_6us=" type="hidden">
-					<input name="amount" value="1" type="hidden">
-					<input name="currency" value="EUR" type="hidden">
-					<input name="memo" value="open liboscam" type="hidden">
-					<button type="submit" class="btn btn-primary btn-lg" style="background-color:#3a324c">Donate 1&#8364;<br><small>Support the development</small></button>
-				</form>
+				<a href="https://github.com/harlequin/samygo-plugin-dvbapi/releases" class="btn btn-primary btn-lg" style="background-color:#3a324c" role="button" target="_blank">Download<br/><small>samygo-plugins-dvbapi</small></a>
+			</div>
+			<div class="col-md-3"  style="text-align:center">
+				<a data-toggle="modal" data-target="#myModal" href="#" class="btn btn-primary btn-lg" style="background-color:#3a324c" role="button" target="_blank">Donate<br><small>Support the development</small></a>
 			</div>	
-			<div class="col-md-3"></div>	
+			<div class="col-md-3">
+			</div>	
 		</div>			
 		<div class="row"  style="text-align:center">						
 			<h2 class="margin-base-vertical">distributed open source, build for everyone</h2>
+		</div>
+		<div class="row"  style="text-align:center">						
+			<h2 class="margin-base-vertical">Latest release: v0.4</h2>
 		</div>
 	</div>
 	
 	</section>
 	
-		<section id="introduction" class="models-section">
+	
+	<section id="models" class="models-section">
 		<div class="container">
-            <div class="row" style="text-align:left">
-                <div class="col-lg-12" >
-                    <h1>Introduction</h1>
-					<p class="big-text">
-					The plugin allows connect Samsung TV to OScam. It creates a software CAM <br/>
-					and communicates with OSCam over camd.socket (using 'dvbapi' module). <br/>
-					This way it pass decryption requests to OSCam and obtains back keys which<br/>
-					are needed for CSA stream decryption.<br/>
-					<br/>
-					This program is free software; you can redistribute it and/or modify<br/>
-					it under the terms of the GNU General Public License as published by<br/>
-					the Free Software Foundation; either version 3 of the License, or<br/>
-					(at your option) any later version.<br/>
-					</p>
-					<br><br>
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>Supported models</h1>
+					
+					<table class="table">
+						<thead>
+							<th>Serie</th>
+							<th>Status</th>
+							<th>Comment</th>
+						</thead>
+						<tbody>
+						<tr>
+							<td>D MST</td>
+							<td>Working</td>
+							<td></td>
+						</tr>
+						
+						<tr><td>E MST</td><td>Alpha</td><td>Not confirmed as working</td></tr>
+						<tr><td>E</td><td>Alpha</td><td>Not confirmed as working</td></tr>
+						<tr><td>F MST</td><td>Alpha</td><td>Not confirmed as working</td></tr>
+						<tr><td>F</td><td>Alpha</td><td>Not confirmed as working</td></tr>
+						<tr><td>H MST</td><td>Alpha</td><td>Not confirmed as working</td></tr>						
+						<tbody>
+					</table>
+					
+					<br/><br><br>
+					
                 </div>
             </div>
-        </div>	
+        </div>			
 	</section>
-	
 	
 	<!-- About Section -->
     <section id="about" class="about-section">
@@ -225,7 +276,96 @@ background: url(img/above-adventure-aerial-air.jpg) no-repeat center center fixe
             <div class="row">
                 <div class="col-lg-12">
                     <h1>Tutorial</h1>
+					<br><br>
+					<h2>Prerequisites</h2>
+					This tutorial is for <b>rooted</b> Samsung smart tv <b>series D(only T-MST version)/E/F/H.</b>
+					There is no root and no oscam for series J.
+					The following steps are for E/F/H only, check the differences for
+					series D at the bottom of the page.
+					<br/>
+					<br/>
+					To find out your tv series and firmware version, press the <b>MENU</b> button
+					on the remote control, then navigate to <b>SUPPORT->CONTACT SAMSUNG</b>.
+					<br><br>
+					<img src="img/tv-model.jpg" class="img-rounded img-center" /><br/><br/>
+					<p>
+					Here you can see the tv series (UE48H6500), the firmware type (T-MST14DEUC-2121.6) and the firmware version (T-MST14DEUC-2121.6).
+					</p>
+					<br><br>
 					
+					
+					<h2>Step 1 - Root the tv</h2>
+					<div class="bs-callout bs-callout-info">
+					Rooting is the process of allowing users of smartphones, tablets and other devices to attain privileged control (known as root access)
+					</div> 
+
+					To learn how to root your smart tv, visit <a href="http://wiki.samygo.tv/index.php5/The_H_Series_Wiki" target="_blank">samygo.tv</a>
+					and follow their instructions. You will need the private root, not the public one, and to access it <b style="color:red">you must be in the samygo donors group</b>.
+					<br/><br/>
+					<ul>
+						<li>root for series H: <a href="http://forum.samygo.tv/viewtopic.php?f=70&t=8469" target="_blank">http://forum.samygo.tv/viewtopic.php?f=70&t=8469</a> (root available only for firmware version up to 2781)</li>
+						<li>root for series E/F: <a href="http://forum.samygo.tv/viewtopic.php?f=70&t=7982" target="_blank">http://forum.samygo.tv/viewtopic.php?f=70&t=7982</a></li>
+						<li>root for series D(T-MST): <a href="https://wiki.samygo.tv/index.php5?title=Root_access_for_D_series_Mstar_cpu_models" target="_blank">https://wiki.samygo.tv/index.php5?title=Root_access_for_D_series_Mstar_cpu_models</a></li>
+					</ul>
+					<br/><br/>
+
+					<h2>Step 2 - Determine the tv ip address</h2>
+					Press the <b>MENU</b> button on the remote control, then navigate to <b>NETWORK->NETWORK STATUS->IP SETTINGS</b>.<br/><br/>
+					<img src="img/ip-settings.jpg" class="img-rounded img-center"/>
+					<br/><br/>
+
+
+					<h2>Step 3 - Unzip oscam.zip and upload to tv</h2>
+					You can download FileZilla, a free ftp client, from <a href="https://filezilla-project.org/download.php?type=client" target="_blank">here</a>.
+					Then input your tv ip address in the host field, set 21 as the port and press the Quickconnect button.
+					Then set the menu <b>Transfer->Transfer type to Binary</b>.<br><br>
+					<img src="img/filezilla.jpg" class="img-rounded img-center"/><br/><br/>
+					Download release from <a href="https://github.com/harlequin/samygo-plugin-dvbapi/releases" target="_blank">here</a>, unpack it and upload the oscam folder to <b>/mnt/opt/privateer/usr/bin</b>.<br/><br/>
+					<img src="img/oscam-zip1.jpg" class="img-rounded img-center"/><br/><br>
+					Copy only the .so file containing the letter of your tv series to the newly created <b>/mnt/opt/privateer/usr/bin/oscam folder</b>.<br/><br/>
+					<img src="img/oscam-folder.jpg" class="img-rounded img-center"/><br/><br/>
+					To enable the autorun, copy 05_05_Oscam.init to <b>/mnt/etc/init.d/</b>.
+					<br/><br/>
+					
+					
+					<h2>Step 4 - Update samyGOso</h2>
+					Download samyGOso_v1.2.5.zip from <a href="http://forum.samygo.tv/viewtopic.php?f=63&t=6186" target="_blank">here</a> and unzip it. 
+					Then copy the file samyGOso from the unzipped folder <b>\samyGOso\out-\</b> to the tv folder
+					<b>/mnt/opt/privateer/usr/bin/</b>. Make sure you replace the existing one.<br/><br/>
+					
+					<img src="img/samyGOso.jpg" class="img-rounded img-center"/><br/>
+					<br><br>
+					
+					<h2>Step 5 - Add executable attribute</h2>
+					Download Putty from <a href="http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html" target="_blank">here</a>. Again, input your tv ip address in the Host Name field and make sure you select Telnet as Connection type. Then click the Open button to start a session.<br><br>
+					<img src="img/putty.jpg" class="img-rounded img-center"/><br/>
+					Enter the following command in the opened command shell:
+					<div class="bs-callout bs-callout-info">
+					chmod 755 /mnt/opt/privateer/usr/bin/samyGOso<br/>
+					chmod 755 /mnt/opt/privateer/usr/bin/oscam/oscam-svn10666-samsungtv-webif<br/>
+					chmod 755 /mnt/etc/init.d/05_05_Oscam.init
+					</div>
+					<br><br>
+					
+					<h2>Final step</h2>
+					Reboot the tv, wait for about 30 seconds and then use your web browser to connect to oscam (http://<ip address of tv>:8888) and setup your servers.
+					<br><br>
+					
+					<h2>Differences for series D</h2>
+					<ul>
+						<li>download the latest samyGOso from here and follow theirs instructions to set it up.</li>
+						<li>Telnet is not working on series D, use netcat on port 1023 instead</li>
+						<li>upload the oscam folder to /mtd_rwdata/oscam</li>
+						<li>copy 05_05_Oscam_series_D.init to /mtd_rwdata/widgets/user/SamyGO/SamyGO/etc/init.d</li>
+						<li>set executable permission by running:</li>
+					</ul>
+					<div class="bs-callout bs-callout-info">
+					chmod +x /mtd_rwdata/widgets/user/SamyGO/SamyGO/etc/init.d/05_05_Oscam.init<br>
+					chmod +x /mtd_rwdata/oscam/oscam-svn10666-mipsel-webif
+					</div>
+					<br><br>
+					
+					<!--
 					<p>This version of the plugin allows to connect to any OSCam installation via TCP socket</p>
 					<p>OSCam dvbapi Settings<p>
 					<pre>
@@ -236,53 +376,57 @@ pmt_mode                      = 4
 listen_port                   = 20000
 user                          = localuser
 boxtype                       = pc
-					</pre>
-					
-					
-					<h2>Command line arguments</h2>
-					<ul>
-						<li>OSCAM_SERVER_IP:xxx.xxx.xxx.xxx - OSCAM dvbapi server address</li>
-						<li>OSCAM_SERVER_PORT:xxxxx - OSCAM dvbapi listenport</li>
-					</ul>
-					<h2>Example call format</h2>
-					<p>samyGOso -D -r -l /mtd_rwdata/oscam/libdvbapi.so OSCAM_SERVER_IP:192.168.1.48 OSCAM_SERVER_PORT:20000</p>
-					
-					<h2>Tools</h2>
-					
-					<ul>
-						<li>nc</li>
-						<li>putty</li>
-					</ul>
+					</pre>				
+					-->
                 </div>
             </div>
         </div>
     </section>
 	
-	<section id="models" class="models-section">
+	<section id="developers" class="models-section">
 		<div class="container">
             <div class="row">
                 <div class="col-lg-12">
-                    <h1>Supported models</h1>
-					<img src="img/ia_image_type_1_250.gif" style="width: 140px; height: 140px;" alt="..." class="img-circle">
-					<p>D Series Mips MST</p>
-					<p>D55xx/57xx/69xx MIPS/MSTAR</p>
-					<p>Tested with: PS51D6900 - T-MST5DEUC-1025.0</p>
+                    <h1>Developers</h1>
+					<div class="bs-callout bs-callout-info">
+					git clone https://github.com/harlequin/samygo-plugin-dvbapi.git<br>
+					cd samygo-plugin-dvbapi<br />
+					set CROSS=<i style="color:yellow">arm-none-linux-gnueabi-</i><br />
+					make PLATFORM=<i style="color:yellow">F</i><br/>
+					</div>
+					
+					For the environment variable <b>CROSS</b> please use the correct toolchain prefix.<br/><br/>
+					The <b>PLATFORM</b> variable is needed for the build target<br/>
+					Possible values are
+					<ul>
+						<li>D-MST</li>
+						<li>E</li>
+						<li>E-MST</li>
+						<li>F</li>
+						<li>F-MST</li>
+						<li>H-MST</li>
+					</ul>
+					
+					
+					
+					
+					<br/><br><br>
+					
                 </div>
             </div>
-        </div>	
+        </div>			
 	</section>
 	
 	
 	<section id="footer" class="footer-section">
 		<div class="container">
             <div class="row">
-			<div class="col-lg-4"></div>
-			<div class="col-lg-4"></div>
+			
 			
 			
 			
                 <div class="col-lg-4">
-                    <h1>Follow on GitHub</h1>
+                    <h1><a href="https://github.com/harlequin/samygo-plugin-dvbapi">Follow on GitHub</a></h1>
 					This software wouldn't be available if there are none if these ...<br/>
 					<ul>
 					<li><a href="https://www.samygo.tv/">SamyGo</a></li>
@@ -291,8 +435,11 @@ boxtype                       = pc
 					</ul>
 					
                 </div>
+				
+				<div class="col-lg-4"></div>
+			<div class="col-lg-4"></div>
             </div>
-			
+			<!--
 			<div class="row">
 				<div class="col-lg-12">
 				<hr size="1">
@@ -322,9 +469,26 @@ boxtype                       = pc
 					</i></small>
 				</div>
 			</div>
+			-->
 			
         </div>
 	</section>
 	
+	
+
+	
+	
+<script>
+	
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-79292329-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</script>
 </body>
 </html>

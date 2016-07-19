@@ -1,0 +1,29 @@
+.block {    
+    text-align: center;
+    vertical-align: middle;
+}
+.circle {
+    background: gray;
+    border-radius: 200px;
+    color: white;
+    height: 150px;
+    font-weight: bold;
+    width: 150px;
+    display: table;
+    margin: 20px auto;
+}
+.circle p {
+    vertical-align: middle;
+    display: table-cell;
+}
+
+.circle-danger {
+	background: #d9534f;
+}
+
+.circle-warning {
+	background: #f0ad4e;
+}
+.circle-success {
+	background: #5cb85c;
+}
