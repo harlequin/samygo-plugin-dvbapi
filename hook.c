@@ -62,6 +62,7 @@ int dyn_sym_tab_init(void *h, dyn_fn_t *fn_tab, uint32_t cnt) {
 }
 
 int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt) {
+	int res = 0;
     samyGO_CTX_t *ctx;
     ctx=paramCTX;
 	void *fn;
@@ -79,27 +80,30 @@ int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt) {
             log("dlsym '%s' failed.\n", ctx->procs[i]);
         } else {
             log("%s [%p].\n",  ctx->procs[i], fn);
+            res++;
         }
         ctx->procs[i] = fn;
     }
-    return 0;
+    return res;
 }
 
-void hijack_start(
-       sym_hook_t *sa, void *target, void *_new)
-{
+void hijack_start(sym_hook_t *sa, void *target, void *_new) {
     unsigned char o_code[HIJACK_SIZE], n_code[HIJACK_SIZE];
-	unsigned long lui,ori;
-			        //addiu = (left  & 0xffff) | ORI_A1_0;
-        // ldr pc, [pc, #0]; .long addr; .long addr
+
+
+	//addiu = (left  & 0xffff) | ORI_A1_0;
+    // ldr pc, [pc, #0]; .long addr; .long addr
     //memcpy(n_code, "\x00\xf0\x9f\xe5\x00\x00\x00\x00\x00\x00\x00\x00", HIJACK_SIZE);
+
+#ifdef SPECIAL_HOOK
+    unsigned long lui,ori;
 	lui = ((((unsigned long)_new) >> 16) & 0xffff) | LUI_T9_0;
 	ori = (((unsigned long)_new) & 0xffff) | ORI_T9_0;
     *(unsigned long *)&n_code[0] = lui;
     *(unsigned long *)&n_code[4] = ori;
     *(unsigned long *)&n_code[8] = JUMP_T9;
     *(unsigned long *)&n_code[12] = NOP;
-/*
+#else
     if ( (unsigned long)target % 4 == 0 )
     {
         // ldr pc, [pc, #0]; .long addr; .long addr
@@ -114,7 +118,8 @@ void hijack_start(
         *(unsigned long *)&n_code[8] = (unsigned long)_new;
         target--;
     }
-	*/
+#endif
+
 
     #if __DEBUG__
     printf("Hooking function 0x%p with 0x%p\n", target, _new);
@@ -196,10 +201,8 @@ void log_buf(char *name, unsigned char *buf)
 
 
 
-int set_hooks(hook_entry_t *hooks, uint32_t cnt)
-{
-    for(int i = 0; i < cnt; i++)
-    {
+int set_hooks(hook_entry_t *hooks, uint32_t cnt) {
+    for(int i = 0; i < cnt; i++) {
         void *fn = hooks[i].dyn_fn->fn;
         if(!fn)
             continue;

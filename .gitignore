@@ -3,3 +3,5 @@
 /.cproject
 /*.so
 /.build
+
+*.o

@@ -1,26 +1,82 @@
-TARGETS=libdvbapi.so
- 
-CFLAGS += -fPIC -O2 -std=gnu99 -I../include -mglibc -march=34kc
+APP_OBJ = dvbapi.o hook.o C_support.o log.o models.o
+LIB_TV_MODEL= 
+CFLAGS += -fPIC -O2 -std=gnu99 -Wall
 CFLAGS += -ldl -DBUILD_GIT_SHA=\"$(GIT_VERSION)\"
-GIT_VERSION := $(shell git describe --dirty --always --abbrev=4)
+GIT_VERSION := $(shell git describe --dirty --always --abbrev=7)
+TAG := $(shell git describe --tags)
 
-# DEFAULT VERSION INFORMATION
-CFLAGS += -DLIB_NAME=\""dvbapi"\" -DLIB_VERSION=\""v0.1"\" -DLIB_TV_MODELS=\""D T-MST"\"
 
-all: ${TARGETS} 
-    	
-libdvbapi.so: dvbapi.c hook.c C_support.c log.c $(wildcard *.h) $(wildcard ../include/*.h)
-	$(CROSS)gcc $(filter %.c %.cpp,$^) ${CFLAGS} -mel -shared -Wl,-soname,$@ -o $@
-
-clean:
-	rm -f ${TARGETS}
-
-ifeq (${TARGET_IP}, )
+ifeq ($(PLATFORM), D-MST)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_d_mst.o
+	CFLAGS += -mglibc -march=34kc -mel -DSPECIAL_HOOK  
 endif
 
-install: ${TARGETS}
-	ping -c1 -W1 -w1 ${TARGET_IP} >/dev/null && \
-        lftp -v -c "open ${TARGET_IP};cd ${TARGET_DEST_DIR};mput $^;"
+ifeq ($(PLATFORM), H-MST)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_h_mst.o
+	CFLAGS +=  
+endif
+
+ifeq ($(PLATFORM), E)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_e.o
+	CFLAGS +=  
+endif
+
+ifeq ($(PLATFORM), E-MST)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_e_mst.o
+	CFLAGS +=  
+endif
+
+ifeq ($(PLATFORM), D)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_d.o
+	CFLAGS +=  
+endif
+
+ifeq ($(PLATFORM), F)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_f.o
+	CFLAGS +=  
+endif
+
+ifeq ($(PLATFORM), F-MST)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_f.o
+	CFLAGS +=  
+endif
+
+
+ifeq ($(PLATFORM), H-TNT)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += models/serie_h_TNT.o
+	CFLAGS +=  
+endif
+
+OBJS = $(APP_OBJ)
+LIB:=libdvbapi-${PLATFORM}-${TAG}.so
+
+# DEFAULT VERSION INFORMATION
+CFLAGS += -DLIB_NAME=\""dvbapi"\" -DLIB_VERSION=\""${TAG}"\" -DLIB_TV_MODELS=\""${LIB_TV_MODEL}"\"  
+
+all: libdvbapi.so
+ifeq ($(LIB_TV_MODEL), )
+	$(error No platform selected!)
+endif
+
+libdvbapi.so: $(OBJS)	
+	$(CROSS)gcc $(CFLAGS) $(OBJS) $(LDFLAGS) -shared -Wl,-soname,$(LIB) -o $(LIB)
+	
+	
+#$(CROSS)gcc $(CFLAGS) $(OBJS) -shared -Wl,-soname,$@ -o $@
+
+.c.o:
+	$(CROSS)gcc $(CFLAGS) -c -o $@ $<   
+   
+clean:
+	rm -f $(OBJS) ${TARGETS} ./models/*.o *.so
 
 .PHONY: clean
 .PHONY: install
