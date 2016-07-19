@@ -37,8 +37,12 @@
 #define _LARGEFILE64_SOURCE 1
 #endif
 
-//#define HIJACK_SIZE 12
-#define HIJACK_SIZE 16
+#ifdef SPECIAL_HOOK
+  #define HIJACK_SIZE 16
+#else
+  #define HIJACK_SIZE 12
+#endif
+
 
 typedef struct
 {
