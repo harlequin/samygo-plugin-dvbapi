@@ -30,14 +30,6 @@
 
 #define FILTER_MASK_SIZE 16
 
-typedef struct DEMUX_FILTER {
-	u16 tableId;
-	s32 monHandle;
-	u8 demuxId;
-	u8 filterId;
-	struct DEMUX_FILTER *next;
-} demux_filter_t;
-
 static int g_send_PMT_required = 0;
 static int g_SID = 0;
 static unsigned int g_dmxHandle = 0;
@@ -51,7 +43,7 @@ typedef union {
 		const int (*SdTSData_StopMonitor)(u32 dmx_handle, u32 mon_handle, u32 SdMainChip_k);
 
 		// libUTOPIA.so
-		uint32_t *gDSCMB_BUFF;
+		u32 *gDSCMB_BUFF;
 		int (*NW_TZ_DSCMB_FUNC)(int TZ_DSCMB_CMD);
 
 		void* (*TCAPI_GetWindow)(int arg1);
@@ -68,7 +60,7 @@ typedef union {
 
 } api_callbacks_t;
 
-api_callbacks_t api_callbacks = {
+api_callbacks_t api_callbacks = {{
 		(const void*)"_Z21SdTSData_StartMonitorjP19SdTSData_Settings_tj12SdMainChip_k",
 		(const void*)"_Z20SdTSData_StopMonitorjj12SdMainChip_k",
 
@@ -85,7 +77,7 @@ api_callbacks_t api_callbacks = {
 		(const void*)"_ZNK9TCChannel16SizeOfDescriptorEv",
 		(const void*)"_ZNK9TCChannel10DescriptorEii",
 		(const void*)"_ZN9TPASource2IdEv",
-};
+}};
 
 //////////////////////////////////////////////////////////////////////////////
 // HELPER FUNCTIONS
@@ -246,7 +238,7 @@ void dvbapi_dmx_stop(u8 demux_index, u8 filter_num, u16 pid) {
 	log("DVBAPI_DMX_STOP request, pid=%X, demux_idx=%d, filter_num=%d\n", pid, demux_index, filter_num);
 	LL_SEARCH_SCALAR(g_demux_filter, filter, filterId, filter_num);
 	if(filter) {
-		u32 res = api_callbacks.SdTSData_StopMonitor( g_dmxHandle, filter->monHandle & 0x7FFFFFFF );
+		u32 res = api_callbacks.SdTSData_StopMonitor( g_dmxHandle, filter->monHandle & 0x7FFFFFFF,0 );
 		log("Monitor stopped, idx=0x%02X, flt=0x%02X, dmxHandle=0x%08X, monHandle=0x%08X, ret=0x%08X\n", demux_index, filter_num, g_dmxHandle, filter->monHandle & 0x7FFFFFFF, res);
 	}
 }
@@ -269,10 +261,11 @@ int dvbapi_server_info(void) {
 		}
 		api_callbacks.TCChannel_Destroy(channel);
 	}
+	return 0;
 }
 
 int dvbapi_set_descriptor(ca_descr_t ca_descr) {
-	u32 i;
+	//u32 i;
 	log("Got CA_SET_DESCR request, adapter=%d, idx=%d, cw parity=%d\n", 0, ca_descr.index, ca_descr.parity);
 	for(int i = 0; i < 16; i++) {
 		F_MDrv_DSCMB2_FltKeySet(0, i, ca_descr.parity + 1, (u32 *)ca_descr.cw);
@@ -313,8 +306,10 @@ int dvbapi_start_filter(u8 demux_index, u8 filter_num, struct dmx_sct_filter_par
 		memset(g_emmParams.mask, 0, DMX_FILTER_SIZE);
 		memset(g_emmParams.mode, 0, DMX_FILTER_SIZE);
 
-		memcpy(g_emmParams.filter, params.filter.filter, DMX_FILTER_SIZE);
-		memcpy(g_emmParams.mask, params.filter.mask, DMX_FILTER_SIZE);
+		g_emmParams.filter[0] = params.filter.filter[0] ;//buff[8];
+		g_emmParams.mask[0] = params.filter.mask[0];//buff[24];
+		memcpy(&g_emmParams.filter[3], &params.filter.filter[1], DMX_FILTER_SIZE - 3);
+		memcpy(&g_emmParams.mask[3], &params.filter.mask[1], DMX_FILTER_SIZE - 3);
 
 		filter->tableId = params.filter.filter[0];
 		filter->demuxId = demux_index;
