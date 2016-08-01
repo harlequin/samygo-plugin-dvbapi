@@ -76,7 +76,7 @@ int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt) {
 		if(!fn)
         	fn = dlsym(h, ctx->procs[i]);
 
-        if(!fn && !(fn=C_find(h,ctx->procs[i]))) {
+        if(!fn) {
             log("dlsym '%s' failed.\n", ctx->procs[i]);
         } else {
             log("%s [%p].\n",  ctx->procs[i], fn);

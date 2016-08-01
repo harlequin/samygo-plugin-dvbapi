@@ -22,7 +22,6 @@
 
 
 #include "common.h"
-#include "C_support.h"
 #include "log.h"
 
 #define STATIC static
