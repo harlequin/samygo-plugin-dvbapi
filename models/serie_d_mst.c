@@ -164,8 +164,10 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, SICallBackSettings_t* data) {
 
 	_HOOK_DISPATCH(DemuxBase_m_Demux_SICallback, data);
 
-	pmt_t *buf;
-	pmt_t *tmp;
+	//pmt_t *buf = NULL;
+	//pmt_t *tmp = NULL;
+	pmt_t *p = NULL;
+	pmt_t *pmt = NULL;
 	u16 sid = 0x00;
 
 	if ( data->len > 0 && data->len <= 1024) {
@@ -178,40 +180,23 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, SICallBackSettings_t* data) {
 				return (int)h_ret;
 			}
 
-			//on new sid or if content not the same
-			LL_SEARCH_SCALAR(g_pmt, buf, sid, sid);
-			if ( !buf || memcmp( data->ptr, buf->ptr, data->len ) != 0) {
-				//no sid in list found
-				buf = malloc(sizeof(pmt_t));
-				buf->sid = sid;
-				buf->lm = PMT_LIST_MORE;
-				buf->len = data->len;
-				buf->ptr = malloc(buf->len);
-				memcpy(buf->ptr, data->ptr, buf->len);
-				LL_APPEND(g_pmt, buf);
-
-				//u8 lm = PMT_LIST_FIRST;
-				LL_FOREACH_SAFE(g_pmt, buf, tmp) {
-					if ( buf->sid == g_SID ) {
-						if ( g_pmt == buf ){ buf->lm |= PMT_LIST_FIRST; }
-						if ( buf->next == NULL ) { buf->lm |= PMT_LIST_LAST; }
-						socket_send_capmt(buf);
-						buf->lm = PMT_LIST_UPDATE;
+			LL_SEARCH_SCALAR(g_pmt, pmt, sid, sid);
+			if(pmt) {
+				if ( pmt->ptr == NULL /*|| memcmp( data->ptr, pmt->ptr, data->len ) != 0 */) {
+					//pmt->sid = sid;
+					pmt->len = data->len;
+					pmt->ptr = malloc(pmt->len);
+					memcpy(pmt->ptr, data->ptr, pmt->len);
+					//LL_APPEND(g_pmt, pmt);
+					//send complete pmt list to oscam
+					u8 lm = PMT_LIST_FIRST;
+					LL_FOREACH(g_pmt, p) {
+						if ( p->next == NULL ) { lm |= PMT_LIST_LAST; }
+						socket_send_capmt(p->ptr, lm);
+						lm = PMT_LIST_MORE;
 					}
 				}
-				g_send_PMT_required = 0;
 			}
-
-//			if ( sid == g_SID && g_send_PMT_required == 1 ) {
-//				buf = malloc(sizeof(pmt_t));
-//				buf->sid = sid;
-//				buf->lm = PMT_LIST_FIRST | PMT_LIST_LAST;
-//				buf->len = data->len;
-//				buf->ptr = malloc(buf->len);
-//				memcpy(buf->ptr, data->ptr, buf->len);
-//				socket_send_capmt(buf);
-//				g_send_PMT_required = 0;
-//			}
 
 		} else {
 			demux_filter_t *filter;
@@ -227,15 +212,18 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, SICallBackSettings_t* data) {
 }
 
 _HOOK_IMPL(int, TCCIMManagerBase_HostChannelChangeCompleted, u32 this, u32 TCChannel, u32 a3, u32 ESource, u32 a5) {
-	//void *ra;
-	//asm("move %0, $ra\n" : "=r" (ra));
 	log("TCCIMManagerBase_HostChannelChangeCompleted, this: 0x%08x tcchannel: 0x%08x a3: 0x%08x esource: 0x%08x a5: 0x%08x\n",this,TCChannel,a3,ESource,a5);
 	_HOOK_DISPATCH(TCCIMManagerBase_HostChannelChangeCompleted, this, TCChannel, a3, ESource, a5);
 
 	if ( TCChannel != 0x00 ) {
 		int sid = api_callbacks.ProgramNumber( (void *) TCChannel);
-		if ( g_SID != sid ) {
-			g_SID = sid;
+		pmt_t *p = NULL;
+		LL_SEARCH_SCALAR(g_pmt, p, sid, sid);
+		if(!p) {
+			p = malloc(sizeof(pmt_t));
+			p->sid = sid;
+			p->ptr = NULL;
+			LL_APPEND(g_pmt, p);
 			g_send_PMT_required = 1;
 			log("Service id changes, new SID: 0x%04x\n", g_SID);
 		}

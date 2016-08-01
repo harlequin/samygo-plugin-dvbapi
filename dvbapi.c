@@ -90,8 +90,8 @@ static void socket_send_client_info() {
 	write(sockfd, buff, sizeof(buff));
 }
 
-void socket_send_capmt(pmt_t *pmt) {
-	int len = 3 + ((pmt->ptr[1] & 0x0F) << 8) + pmt->ptr[2];
+void socket_send_capmt(u8 *ptr, u8 lm) {
+	int len = 3 + ((ptr[1] & 0x0F) << 8) + ptr[2];
 
 	if( len > 1024 ) {
 		log("Unable to send pmt, wrong length: %d\n", len);
@@ -100,7 +100,7 @@ void socket_send_capmt(pmt_t *pmt) {
 
 	unsigned char caPMT[1040];
 	//program_info_length (+1 for ca_pmt_cmd_id, +4 for CAPMT_DESC_DEMUX)
-	int program_info_length = ((pmt->ptr[10] & 0x0F) << 8) + pmt->ptr[11] + 4 + 1;
+	int program_info_length = ((ptr[10] & 0x0F) << 8) + ptr[11] + 4 + 1;
 	int length_field = len - 5;						// 17 - 6 + len - 4 - 12
 
 	//ca_pmt_tag
@@ -112,9 +112,9 @@ void socket_send_capmt(pmt_t *pmt) {
 	caPMT[4] = length_field >> 8;
 	caPMT[5] = length_field & 0xff;
 
-	caPMT[6] = pmt->lm; 							//list management
-	caPMT[7] = pmt->ptr[3];          				//program_number
-	caPMT[8] = pmt->ptr[4];        					//program_number
+	caPMT[6] = lm; 							//list management
+	caPMT[7] = ptr[3];          				//program_number
+	caPMT[8] = ptr[4];        					//program_number
 	caPMT[9] = 0;               					//version_number, current_next_indicator
 
 	caPMT[10] = program_info_length >> 8;           //reserved+program_info_length
@@ -127,7 +127,7 @@ void socket_send_capmt(pmt_t *pmt) {
 	caPMT[15] = 0x00;           					//demux id
 	caPMT[16] = (char)adapter_index;   				//adapter id
 
-	memcpy(caPMT + 17, pmt->ptr + 12, len - 16);  	//copy pmt data starting at program_info block
+	memcpy(caPMT + 17, ptr + 12, len - 16);  	//copy pmt data starting at program_info block
 
 	write(sockfd, caPMT, length_field + 6);			// dont send the last 4 bytes (CRC)
 	log("capmt send to oscam\n");
