@@ -474,10 +474,6 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 
 	/* commandline parameters */
 	argc = getArgCArgV(libpath, argv);
-
-	optstr = getOptArg(argv, argc, "OSCAM_MODE:");
-	if(optstr) {
-		oscam_server_type = atoi(optstr);
 	}
 
 	optstr = getOptArg(argv, argc, "OSCAM_SERVER_IP:");
@@ -490,27 +486,21 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 		oscam_server_port = atoi(optstr);
 	}
 
-	if ( oscam_server_type != 0) {
+	if ( oscam_server_ip != NULL || oscam_server_port != 0) {
 		if ( !oscam_server_ip || oscam_server_port == 0 ) {
 			log("error: oscam network mode needs oscam server ip and oscam server port argument\n");
 			return;
 		}
+		/* connect to oscam server as client */
+		if(pthread_create(&x_thread_socket_handler, NULL, start_capmt_client, NULL)) {
+		    log("error creating socket handler thread\n");
+		}
+	} else {
+		/* be a server for oscam client */
+		if(pthread_create(&x_thread_socket_handler, NULL, start_capmt_server, NULL)) {
+			log("error creating socket handler thread\n");
+		}
 	}
-	dlclose(h);
-
-    log ("Hooking the system done ...\n");
-
-    if ( oscam_server_type == 0) {
-    	if(pthread_create(&x_thread_socket_handler, NULL, start_capmt_server, NULL)) {
-    		log("error creating socket handler thread\n");
-    	}
-    } else {
-    	if(pthread_create(&x_thread_socket_handler, NULL, start_capmt_client, NULL)) {
-    		log("error creating socket handler thread\n");
-    	}
-    }
-
-
 }
 
 EXTERN_C void lib_deinit(void *_h) {
