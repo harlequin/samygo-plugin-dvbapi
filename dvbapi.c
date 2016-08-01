@@ -19,29 +19,17 @@
  */
 #include <stdio.h>
 #include <unistd.h>
-#include <limits.h>
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <sys/time.h>   
-#include <stdint.h>
-#include <stdlib.h>
-#include <fcntl.h>
+#include <string.h>
 #include <dlfcn.h>
-#include <memory.h>
-#include <glob.h>
-#include <stdarg.h>
-#include <pthread.h>
 #include <execinfo.h>
 #include <stdlib.h>
-#include <string.h>
 #include <errno.h>
+#include <pthread.h> /* socket handler */
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <pthread.h> /* socket handler */
 #include <arpa/inet.h> /* inet_pton */
-#include <unistd.h>
 
 #include "utlist.h"
 #include "version.h"
@@ -59,7 +47,7 @@ static void capmt_connection_handler();
 static u8 oscam_server_type = 0;
 
 
-static u8* oscam_server_ip = NULL;
+static char* oscam_server_ip = NULL;
 static u16 oscam_server_port = 0;
 
 static pthread_t x_thread_socket_handler;
@@ -147,7 +135,7 @@ void socket_send_capmt(pmt_t *pmt) {
 
 static char *get_ip(char *host) {
   struct hostent *hent;
-  int iplen = 15; //XXX.XXX.XXX.XXX
+  int iplen = 15;
   char *ip = (char *)malloc(iplen+1);
   memset(ip, 0, iplen+1);
   if((hent = gethostbyname(host)) == NULL) {
@@ -460,7 +448,7 @@ char* getOptArg(char **argv, int argc, char *option) {
 
 EXTERN_C void lib_init(void *_h, const char *libpath) {
 	u32 argc;
-	u8 *argv[100],*optstr;
+	char *argv[100],*optstr;
 
     if(_hooked) {
         log("Injecting once is enough!\n");
@@ -510,7 +498,6 @@ EXTERN_C void lib_init(void *_h, const char *libpath) {
 	}
 	dlclose(h);
 
-	log ("Samsung %s [%s]\n", model_type_string(model_type()), model_firmware_string(model_firmware()));
     log ("Hooking the system done ...\n");
 
     if ( oscam_server_type == 0) {
