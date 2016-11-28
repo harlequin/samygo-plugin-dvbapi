@@ -17,58 +17,31 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-BUILD_DIR=".build"
-VERSION=`git describe --tags`
-rm -rf $BUILD_DIR
-mkdir -p $BUILD_DIR
+#BUILD_DIR=".build"
+#VERSION=`git describe --tags`
+#rm -rf $BUILD_DIR
+#mkdir -p $BUILD_DIR
 make clean
 
-export CROSS=mips-linux-gnu-
-make PLATFORM=D-MST
-mv *.so $BUILD_DIR
-make clean
 
-export CROSS=arm-none-linux-gnueabi-
-make PLATFORM=E
-mv *.so $BUILD_DIR
-make clean
-
-export CROSS=arm-none-linux-gnueabi-
-make PLATFORM=E-MST
-mv *.so $BUILD_DIR
-make clean
-
-export CROSS=arm-none-linux-gnueabi-
-make PLATFORM=F
-mv *.so $BUILD_DIR
-make clean
-
-export CROSS=arm-none-linux-gnueabi-
-make PLATFORM=F-MST
-mv *.so $BUILD_DIR
-make clean
-
-export CROSS=arm-none-linux-gnueabi-
-make PLATFORM=H-MST
-mv *.so $BUILD_DIR
-make clean
-
-#export CROSS=arm-none-linux-gnueabi-
-#make PLATFORM=D
 #mv *.so $BUILD_DIR
 #make clean
 
 
 
+export CROSS=mips-linux-gnu-
+make PLATFORM=D-MST
+export CROSS=arm-none-linux-gnueabi-
+make PLATFORM=E
+make PLATFORM=E-MST
+make PLATFORM=F
+make PLATFORM=F-MST
+make PLATFORM=H-MST
+make PLATFORM=H-GFS
+make PLATFORM=H-TNT
 
-
-
-
-
-
-
-mkdir $BUILD_DIR/oscam
-cp oscam/oscam-svn* $BUILD_DIR/oscam
-cp oscam/oscam.* $BUILD_DIR
-cp init/05_05_samygo* $BUILD_DIR
-(cd $BUILD_DIR; tar -czf samygo-plugin-dvbapi-$VERSION.tar.gz *; mv *.tar.gz ./..;)
+#mkdir $BUILD_DIR/oscam
+#cp oscam/oscam-svn* $BUILD_DIR/oscam
+#cp oscam/oscam.* $BUILD_DIR
+#cp init/05_05_samygo* $BUILD_DIR
+#(cd $BUILD_DIR; tar -czf samygo-plugin-dvbapi-$VERSION.tar.gz *; mv *.tar.gz ./..;)

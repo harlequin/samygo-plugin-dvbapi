@@ -1,0 +1,7 @@
+*.h			eol=lf
+*.c 		eol=lf
+Makefile 	eol=lf
+*.sh 		eol=lf
+*.conf		eol=lf
+*.dvbapi 	eol=lf
+*.init 		eol=lf
