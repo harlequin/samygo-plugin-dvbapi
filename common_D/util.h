@@ -254,6 +254,7 @@ STATIC int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt)
     return 0;
 }
 */
+/*
 STATIC int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt)
 {
 	samyGO_CTX_t *ctx;
@@ -277,7 +278,7 @@ STATIC int samyGO_whacky_t_init(void *h, void *paramCTX, uint32_t cnt)
 	}
 	return 0;
 }
-
+*/
 void log_buf(char *name, unsigned char *buf)
 {
     int i;

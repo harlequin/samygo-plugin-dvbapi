@@ -1,15 +1,24 @@
-/*
- *  bugficks
- *	(c) 2013
+/**
+ * samygo-plugin-dvbapi
+ * Copyright (C) 2017  harlequin
  *
- *  sectroyer
- *	(c) 2014
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *  MrB
- *	(c) 2015
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  License: GPLv3
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
+ * Original idea and source code from
+ * - bugficks (c) 2013
+ * - sectroyer (c) 2014
+ * - MrB (c) 2015
  */
 //////////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +33,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include <netinet/in.h>
-//#include "utlist.h"
 #include "../common_D/common.h"
 #include "../common_D/hook.h"
 #include "../common_D/util.h"
@@ -332,7 +340,7 @@ _HOOK_IMPL(int, TCCIMManagerBase_HostChannelChangeCompleted, void* this, void* T
 
 _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, unsigned int* SICallBackSettings_t)
 {
-	_HOOK_DISPATCH(DemuxBase_m_Demux_SICallback, SICallBackSettings_t);
+
 
 	if(g_socket < 0) return (int)h_ret;
 
@@ -379,10 +387,19 @@ _HOOK_IMPL(int,DemuxBase_m_Demux_SICallback, unsigned int* SICallBackSettings_t)
 				lm = i == MAX_DEMUX - 1 ? LIST_LAST : i > 0 ? LIST_MORE : LIST_ONLY;
 				send_pmt(lm, g_PMT[pmt_index], i);
 				log("PMT sent, dmx=%d, sId=0x%04X, lm=0x%02X\n", i, g_demux[i].serviceId, lm);
+
+
+				memset(&g_dmxParams, 0, sizeof(t_dmxParams));
+				g_dmxParams.pid = pid;
+				g_dmxParams.tableId = 0x80;
+				hCTX.SdTSData_StartMonitor( 0x19800620, &g_dmxParams , 0 );
+				log("[x] Initial monitor started ...");
 			}
 		}
 		g_send_PMT = 0;
 	}
+
+	_HOOK_DISPATCH(DemuxBase_m_Demux_SICallback, SICallBackSettings_t);
 	return (int)h_ret;
 }
 

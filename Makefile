@@ -12,6 +12,12 @@ ifeq ($(PLATFORM), D-MST)
 	CFLAGS += -mglibc -march=34kc -mel -DSPECIAL_HOOK  
 endif
 
+ifeq ($(PLATFORM), D-MST-NEW)
+	LIB_TV_MODEL=${PLATFORM}
+	APP_OBJ += src/oscamLib_D_T-MST_NEW.o common_D/hook.o
+	CFLAGS += -mglibc -march=34kc -mel -DSPECIAL_HOOK  
+endif
+
 ifeq ($(PLATFORM), E)
 	LIB_TV_MODEL=${PLATFORM}
 	APP_OBJ += src/oscamLib_E_NON-MST.o common/hook.o

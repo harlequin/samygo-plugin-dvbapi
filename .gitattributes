@@ -1,4 +1,4 @@
-*.h			eol=lf
+*.h		eol=lf
 *.c 		eol=lf
 Makefile 	eol=lf
 *.sh 		eol=lf
